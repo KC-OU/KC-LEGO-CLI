@@ -9,6 +9,11 @@ from datetime import datetime
 import sys
 import random
 
+
+
+
+
+
 # ANSI color codes for better UI
 class Colors:
     HEADER = '\033[95m'
@@ -491,7 +496,15 @@ def add_part():
         cprint("Part Name is required.", Colors.FAIL)
         time.sleep(1.5)
         return
-    
+
+    # --- Category picker (was theme picker) ---
+    part_category = input("Part Category (Technic, Brick, Slope, etc.) [Required]: ").strip()
+    if not part_category:
+        cprint("Part Category is required.", Colors.FAIL)
+        time.sleep(1.5)
+        return
+    # ------------------------------------------
+
     while True:
         try:
             part_qty = int(input("Part Quantity [Required]: ").strip())
@@ -500,12 +513,6 @@ def add_part():
             break
         except ValueError:
             cprint("Please enter a valid quantity (positive number).", Colors.FAIL)
-    
-    part_category = input("Part Category (Technic, Brick, Slope, etc.) [Required]: ").strip()
-    if not part_category:
-        cprint("Part Category is required.", Colors.FAIL)
-        time.sleep(1.5)
-        return
     
     part_color = input("Part Color (Red, Green, Blue, Trans-blue, etc.) [Required]: ").strip()
     if not part_color:
@@ -517,8 +524,8 @@ def add_part():
         "part_id": part_id,
         "long_part_id": long_part_id,
         "part_name": part_name,
+        "part_category": part_category,  # <-- Use part_category here
         "part_qty": part_qty,
-        "part_category": part_category,
         "part_color": part_color,
         "created_at": datetime.now().isoformat(),
         "updated_at": datetime.now().isoformat()
@@ -588,87 +595,80 @@ def edit_part():
     input("Press Enter to continue...")
 
 def remove_part(current_user):
-    """Remove a Lego part (admin only)."""
-    if current_user["role"] != "admin":
-        cprint("Only admins can remove parts.", Colors.FAIL)
-        time.sleep(1.5)
-        return
-    
+    """Remove a Lego part (admin override required for all users)."""
     clear_screen()
     cprint("===== Remove Lego Part =====", Colors.HEADER)
     
     part_id = input("Enter Part ID to remove: ").strip()
-    
     parts = load_parts()
     part_index = None
-    
+    part_to_remove = None
+
     for i, part in enumerate(parts):
         if part["part_id"] == part_id:
             part_index = i
             part_to_remove = part
             break
-    
+
     if part_index is None:
         cprint(f"Part with ID {part_id} not found.", Colors.FAIL)
         time.sleep(1.5)
         return
-    
+
     print(f"\nPart Details:")
     print(f"Name: {part_to_remove['part_name']}")
     print(f"Category: {part_to_remove['part_category']}")
     print(f"Color: {part_to_remove['part_color']}")
     print(f"Quantity: {part_to_remove['part_qty']}")
-    
+
+    # Admin override required
+    cprint("\nAdmin override required to remove this part.", Colors.WARNING)
+    users = load_users()
+    admin_username = input("Admin Username or UserID: ").strip()
+    admin_user = users.get(admin_username)
+    if not admin_user:
+        # Try to find by userID
+        for uname, udata in users.items():
+            if udata.get("userid") == admin_username:
+                admin_user = udata
+                break
+    if not admin_user or admin_user.get("role") != "admin":
+        cprint("Admin user not found or not an admin.", Colors.FAIL)
+        input("Press Enter to continue...")
+        return
+    admin_pass = getpass.getpass("Admin Password: ")
+    if admin_user["password"] != hash_password(admin_pass):
+        cprint("Incorrect admin password.", Colors.FAIL)
+        input("Press Enter to continue...")
+        return
+
     confirm = input("\nAre you sure you want to remove this part? (y/n): ").strip().lower()
-    
     if confirm == 'y':
         parts.pop(part_index)
         save_parts(parts)
         cprint(f"Part {part_id} removed successfully.", Colors.OKGREEN)
     else:
         cprint("Removal cancelled.", Colors.WARNING)
-    
+
     input("Press Enter to continue...")
 
 def search_parts():
     """Search for Lego parts."""
     clear_screen()
     cprint("===== Search Lego Parts =====", Colors.HEADER)
-    print("Enter search criteria (leave blank to skip):")
-    
-    part_id = input("Part ID: ").strip().lower()
-    long_part_id = input("Long Part ID: ").strip().lower()
-    part_name = input("Part Name (partial match): ").strip().lower()
-    
+    search_term = input("Enter part name or ID to search: ").strip().lower()
     parts = load_parts()
     results = []
-    
     for part in parts:
-        matches = True
-        
-        if part_id and part_id not in part["part_id"].lower():
-            matches = False
-        
-        if long_part_id and long_part_id not in part["long_part_id"].lower():
-            matches = False
-        
-        if part_name and part_name not in part["part_name"].lower():
-            matches = False
-        
-        if matches:
+        if (search_term in part["part_id"].lower() or
+            search_term in part["part_name"].lower()):
             results.append(part)
-    
-    clear_screen()
-    cprint("===== Search Results =====", Colors.HEADER)
-    
     if not results:
-        cprint("No parts found matching your criteria.", Colors.WARNING)
+        cprint("No parts found.", Colors.WARNING)
     else:
-        cprint(f"Found {len(results)} part(s):", Colors.OKGREEN)
-        print("\n{:<10} {:<10} {:<30} {:<8} {:<15} {:<15}".format(
+        print("{:<10} {:<10} {:<30} {:<8} {:<15} {:<15}".format(
             "Part ID", "Long ID", "Name", "Qty", "Category", "Color"))
         print("-" * 90)
-        
         for part in results:
             print("{:<10} {:<10} {:<30} {:<8} {:<15} {:<15}".format(
                 part["part_id"],
@@ -678,51 +678,7 @@ def search_parts():
                 part["part_category"][:15],
                 part["part_color"][:15]
             ))
-    
     input("\nPress Enter to continue...")
-
-def export_parts():
-    """Export parts to a file."""
-    clear_screen()
-    cprint("===== Export Lego Parts =====", Colors.HEADER)
-    
-    format_choice = ""
-    while format_choice not in ["1", "2"]:
-        print("Select export format:")
-        print("1. JSON")
-        print("2. TXT")
-        format_choice = input("Choice (1-2): ").strip()
-    
-    filename = input("Enter filename (without extension): ").strip()
-    if not filename:
-        filename = f"kc_parts_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-    
-    parts = load_parts()
-    
-    if format_choice == "1":  # JSON
-        export_path = os.path.join(os.getcwd(), f"{filename}.json")
-        with open(export_path, 'w') as f:
-            json.dump(parts, f, indent=4)
-    else:  # TXT
-        export_path = os.path.join(os.getcwd(), f"{filename}.txt")
-        with open(export_path, 'w') as f:
-            f.write("KC-Parts Export - {}\n".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
-            f.write("\n{:<10} {:<10} {:<30} {:<8} {:<15} {:<15}\n".format(
-                "Part ID", "Long ID", "Name", "Qty", "Category", "Color"))
-            f.write("-" * 90 + "\n")
-            
-            for part in parts:
-                f.write("{:<10} {:<10} {:<30} {:<8} {:<15} {:<15}\n".format(
-                    part["part_id"],
-                    part["long_part_id"],
-                    part["part_name"][:30],
-                    part["part_qty"],
-                    part["part_category"][:15],
-                    part["part_color"][:15]
-                ))
-    
-    cprint(f"\nExport completed successfully to {export_path}", Colors.OKGREEN)
-    input("Press Enter to continue...")
 
 def main_menu(current_user):
     """Display the main menu and handle user choices."""
@@ -741,60 +697,32 @@ def main_menu(current_user):
         print("2. Edit Lego Part")
         print("3. Search Lego Parts")
         print("4. Export Parts")
-        
-        if current_user["role"] == "admin":
-            print("5. User Management")
-            print("6. Remove Lego Part")
-            print("7. Logout")
-            print("8. Exit")
-        else:
-            print("5. Logout")
-            print("6. Exit")
+        print("5. Remove Lego Part")  # <-- Always show this option
+        print("6. Logout")
+        print("7. Exit")
         
         choice = input("\nEnter your choice: ").strip()
         
-        if current_user["role"] == "admin":
-            if choice == "1":
-                add_part()
-            elif choice == "2":
-                edit_part()
-            elif choice == "3":
-                search_parts()
-            elif choice == "4":
-                export_parts()
-            elif choice == "5":
-                user_management_menu(current_user, current_username)
-            elif choice == "6":
-                remove_part(current_user)
-            elif choice == "7":
-                cprint("Logging out...", Colors.WARNING)
-                time.sleep(1)
-                return True
-            elif choice == "8":
-                cprint("Exiting KC-Parts. Goodbye!", Colors.OKGREEN)
-                return False
-            else:
-                cprint("Invalid choice. Please try again.", Colors.WARNING)
-                time.sleep(1)
+        if choice == "1":
+            add_part()
+        elif choice == "2":
+            edit_part()
+        elif choice == "3":
+            search_parts()
+        elif choice == "4":
+            export_parts()
+        elif choice == "5":
+            remove_part(current_user)
+        elif choice == "6":
+            cprint("Logging out...", Colors.WARNING)
+            time.sleep(1)
+            return True
+        elif choice == "7":
+            cprint("Exiting KC-Parts. Goodbye!", Colors.OKGREEN)
+            return False
         else:
-            if choice == "1":
-                add_part()
-            elif choice == "2":
-                edit_part()
-            elif choice == "3":
-                search_parts()
-            elif choice == "4":
-                export_parts()
-            elif choice == "5":
-                cprint("Logging out...", Colors.WARNING)
-                time.sleep(1)
-                return True
-            elif choice == "6":
-                cprint("Exiting KC-Parts. Goodbye!", Colors.OKGREEN)
-                return False
-            else:
-                cprint("Invalid choice. Please try again.", Colors.WARNING)
-                time.sleep(1)
+            cprint("Invalid choice. Please try again.", Colors.WARNING)
+            time.sleep(1)
 
 def run_app():
     """Run the KC-Parts application."""

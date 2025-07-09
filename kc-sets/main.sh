@@ -8,6 +8,119 @@ import re
 from datetime import datetime
 import sys
 import random
+import signal
+
+INACTIVITY_TIMEOUT = 180  # Default inactivity timeout in seconds
+### Adding Themes
+
+THEMES = [
+    "Animal Crossing",
+    "Architecture",
+    "Art",
+    "Batman",
+    "Bluey",
+    "Botanical Collection",
+    "Braille Bricks",
+    {"BrickHeads": [
+        "Avatar", "Back to the Future", "Despicable Me and Minons", "Disney", "Fortnite", "Ghostbusters", "Harry Potter",
+        "Holiday & Event", "Jurassic World", "Looney Tunes", "Minecraft", "Monkie Kid", "Ninjago", "Pets",
+        "Pirates of the Caribbean", "Sonic the Hedgehog", "Sports", "Star Wars", "Stranger Things", "Super Heroes",
+        "The Hobbit and The Lord of the Rings", "The Incredibles", "The LEGO Movie 2", "The LEGO NINJAGO Movie",
+        "The Simpsons", "Tom and Jerry", "Toy Story", "Transformers", "Universal Monsters", "WALL-E", "Wednesday"
+    ]},
+    "City",
+    "Classic",
+    "Creator 3in1",
+    "DC",
+    "Despicable Me 4",
+    "Disney",
+    "DreamZzz",
+    "Duplo",
+    "Education",
+    "Friends",
+    "Fortnite",
+    "Gabby's Dollhouse",
+    {"Harry Potter": [
+        "Chamber of Secrets", "Deathly Hallows", "Fantastic Beasts", "Goblet of Fire", "Half-Blood Prince",
+        "Hogwarts Moment", "Mini", "Order of the Phoenix", "Prisoner of Azkaban", "Sculptures", "Sorcerer's Stone"
+    ]},
+    "Icons",
+    "Ideas",
+    "Jurassic World",
+    "Lord of the Rings",
+    "Minecraft",
+    "Minifigures",
+    "Monkie Kid",
+    "Nike Collection",
+    {"Ninjago": [
+        "Other", "Core", "Crystalized", "Day of the Departed", "Dragons Rising Season 1", "Dragons Rising Season 2",
+        "Dragons Rising Season 3", "Hunted", "Legacy", "March of the Oni", "Master of the Mountain", "NINJAGO Legends",
+        "Possession", "Prime Empire", "Rebooted", "Rise of the Snakes", "Seabound", "Secrets of the Forbidden Spinjitzu",
+        "Skybound", "Sons of Garmadon", "Spinjitzu", "The Final Battle", "The Golden Weapons", "The Hands of Time",
+        "The Island", "Tournament of Elements"
+    ]},
+    "One Piece",
+    "Powered UP",
+    "Serious Play",
+    "Sonic the Hedgehog",
+    "Speed Champions",
+    {"Star Wars": [
+        "Boost", "Buildable Figures", "Diorama Collection", "Helmet Collection", "Master Builder Series",
+        "Microfighters Series 1", "Microfighters Series 2", "Microfighters Series 3", "Microfighters Series 4",
+        "Microfighters Series 5", "Microfighters Series 6", "Microfighters Series 7", "Microfighters Series 8",
+        {"Mini (158)": [
+            "Star Wars Episode 1", "Star Wars Episode 2", "Star Wars Episode 3", "Star Wars Episode 4/5/6",
+            "Star Wars Episode 7", "Star Wars Episode 8", "Star Wars Episode 9", "Star Wars Obi-Wan Kenobi",
+            "Star Wars Rebels", "Star Wars Rogue One", "Star Wars Solo", "Star Wars The Bad Batch",
+            "Star Wars The Clone Wars", "Star Wars The Mandalorian"
+        ]},
+        "Planets Series 1", "Planets Series 2", "Planets Series 3", "Planets Series 4", "Promotional", "Sculptures",
+        "Star Wars Ahsoka", "Star Wars Andor", "Star Wars Battlefront", "Star Wars Episode 1", "Star Wars Episode 2",
+        "Star Wars Episode 3", "Star Wars Episode 4/5/6", "Star Wars Episode 7", "Star Wars Episode 8",
+        "Star Wars Episode 9", "Star Wars Galaxy's Edge", "Star Wars Legends",
+        {"Star Wars Knights of the Old Republic": [
+            "Star Wars The Force Unleashed", "Star Wars The Old Republic"
+        ]},
+        "Star Wars Obi-Wan Kenobi", "Star Wars Other", "Star Wars Mechs", "Star Wars Rebuild the Galaxy",
+        "Star Wars The Freemaker Adventures", "Star Wars Rebels", "Star Wars Resistance", "Star Wars Rogue One",
+        "Star Wars Skeleton Crew", "Star Wars Solo", "Star Wars The Bad Batch", "Star Wars The Book of Boba Fett",
+        "Star Wars The Clone Wars", "Star Wars The Mandalorian", "Star Wars Yoda Chronicles",
+        "Star Wars Young Jedi Adventures", "Starship Collection", "Ultimate Collector Series"
+    ]},
+    {"SuperMario": [
+        "Mario Kart", "Sculptures", "Super Mario Expansion Set", "Super Mario Maker Set", "Super Mario Power-Up Pack",
+        "Super Mario Series 1", "Super Mario Series 2", "Super Mario Series 3", "Super Mario Series 4",
+        "Super Mario Series 5", "Super Mario Series 6", "Super Mario Starter Course"
+    ]},
+    {"Technic": [
+        "Arctic Technic", "Competition", "Expert Builder", "Model 395", "Airport", "Construction", "Farm", "Fire",
+        "Harbor", "Off-Road", "Police", "Race", "Riding Cycle", "Robot", "Space Exploration", "Traffic", "RoboRiders",
+        "Speed Slammers", "Star Wars", "Super Heroes", "Supplemental", "Throwbot / Slizer", "Universal Building Set"
+    ]},
+    "The Legend of Zelda",
+    "Wednesday",
+    "Wicked",
+    {"SpiderMan": ["Spider Man 1", "Spider Man 2"]},
+    {"Super Heroes": [
+        "Ant-Man", "Ant-Man and the Wasp", "Ant-Man and the Wasp Quantumania", "Aquaman", "Avengers",
+        "Avengers Age of Ultron", "Avengers Assemble", "Avengers Endgame", "Avengers Infinity War",
+        "Batman Classic TV Series", "Batman II", "Batman The Animated Series", "Black Panther",
+        "Black Panther Wakanda Forever", "Black Widow", "Buildable Figures", "Bust Collection",
+        "Captain America Brave New World", "Captain America Civil War", "Captain Marvel", "Dawn of Justice",
+        "Doctor Strange", "Doctor Strange in the Multiverse of Madness", "Eternals", "Ghost Rider",
+        "Guardians of the Galaxy", "Guardians of the Galaxy Vol. 2", "Guardians of the Galaxy Vol. 3",
+        "Iron Man 3", "Justice League", "Legends of Tomorrow", "Man of Steel", "Mighty Micros", "Sculpture",
+        "Shang-Chi", "Spider-Man", "Spider-Man Across the Spider-Verse", "Spider-Man Far From Home",
+        "Spider-Man Homecoming", "Spider-Man No Way Home", "Spidey and his Amazing Friends", "Super Heroes Other",
+        "Superman", "The Avengers", "The Batman", "The Dark Knight Trilogy", "The Fantastic Four First Steps",
+        "The Infinity Saga", "The LEGO Batman Movie", "The Marvels", "Thor Love and Thunder", "Thor Ragnarok",
+        "Tim Burton's Batman", "Ultimate Spider-Man", "What If...?", "Wonder Woman", "Wonder Woman 1984",
+        "Wonder Woman Comic", "X-Men"
+    ]},
+    "Other"
+]
+
+
 
 # ANSI color codes for better UI
 class Colors:
@@ -165,6 +278,7 @@ def create_user(admin_user):
         cprint("Only admins can create users.", Colors.FAIL)
         time.sleep(1.5)
         return
+
     clear_screen()
     cprint("===== Create New User =====", Colors.HEADER)
     first_name = input("First Name: ").strip()
@@ -388,7 +502,7 @@ def edit_user_id(admin_user, current_username):
             f"{user_data['first_name']} {user_data['last_name']}"
         ))
     print("\nEnter the UserID or Username to edit (or leave blank to cancel):")
-    value = input("UserID or Username: ").strip()
+    value = input_with_timeout("UserID or Username: ")
     if not value:
         cprint("Operation cancelled.", Colors.WARNING)
         time.sleep(1)
@@ -398,13 +512,10 @@ def edit_user_id(admin_user, current_username):
         cprint(f"User '{value}' not found.", Colors.FAIL)
         time.sleep(1.5)
         return
-    if uname == current_username:
-        cprint("You cannot edit your own UserID.", Colors.FAIL)
-        time.sleep(1.5)
-        return
+    # Admin can now edit their own UserID
     existing_ids = [u.get("user_id") for u in users.values()]
     while True:
-        new_id = input("Enter new UserID (4-7 digits): ").strip()
+        new_id = input_with_timeout("Enter new UserID (4-7 digits): ").strip()
         if not new_id.isdigit() or not (4 <= len(new_id) <= 7) or new_id in existing_ids:
             cprint("Invalid or duplicate UserID. Try again.", Colors.FAIL)
         else:
@@ -412,10 +523,10 @@ def edit_user_id(admin_user, current_username):
     user["user_id"] = new_id
     save_users(users)
     cprint(f"UserID for '{uname}' changed to {new_id}.", Colors.OKGREEN)
-    input("Press Enter to continue...")
+    input_with_timeout("Press Enter to continue...")
 
 def reset_user_password(admin_user, current_username):
-    """Reset a user's password (admin only)."""
+    """Reset a user's password (admin only, with override for self)."""
     if admin_user["role"] != "admin":
         cprint("Only admins can reset passwords.", Colors.FAIL)
         time.sleep(1.5)
@@ -442,10 +553,23 @@ def reset_user_password(admin_user, current_username):
         cprint(f"User '{value}' not found.", Colors.FAIL)
         time.sleep(1.5)
         return
+
+    # If admin is resetting their own password, require override login
     if uname == current_username:
-        cprint("You cannot reset your own password here.", Colors.FAIL)
-        time.sleep(1.5)
-        return
+        cprint("Admin override required to reset your own password.", Colors.WARNING)
+        override_id = input("Re-enter your UserID: ").strip()
+        override_pass = getpass.getpass("Re-enter your password: ")
+        # Find admin user by user_id
+        admin_uname, admin_user_check = get_user_by_id(users, override_id)
+        if not admin_user_check or admin_uname != current_username:
+            cprint("Override failed: UserID does not match your account.", Colors.FAIL)
+            time.sleep(1.5)
+            return
+        if admin_user_check["password"] != hash_password(override_pass):
+            cprint("Override failed: Incorrect password.", Colors.FAIL)
+            time.sleep(1.5)
+            return
+
     user["password"] = hash_password("12345")
     user["password_changed"] = False
     save_users(users)
@@ -476,7 +600,11 @@ def add_set():
         time.sleep(1.5)
         return
 
-    set_theme = input("Set Theme (Required): ").strip()
+    theme, subtheme = pick_theme()
+    if subtheme:
+        set_theme = f"{theme} - {subtheme}"
+    else:
+        set_theme = theme
     if not set_theme:
         cprint("Set Theme is required.", Colors.FAIL)
         time.sleep(1.5)
@@ -592,10 +720,13 @@ def edit_set():
     set_name = input(f"Set Name [{s['set_name']}]: ").strip()
     if set_name:
         s["set_name"] = set_name
-    
-    set_theme = input(f"Set Theme [{s['set_theme']}]: ").strip()
-    if set_theme:
-        s["set_theme"] = set_theme
+
+    print(f"Current Theme: {s['set_theme']}")
+    theme, subtheme = pick_theme()
+    if subtheme:
+        s["set_theme"] = f"{theme} - {subtheme}"
+    else:
+        s["set_theme"] = theme
     
     set_year = input(f"Set Year [{s['set_year']}]: ").strip()
     if set_year:
@@ -659,77 +790,118 @@ def edit_set():
     input("Press Enter to continue...")
 
 def search_sets():
-    """Search for Lego sets."""
-    clear_screen()
-    cprint("===== Search Lego Sets =====", Colors.HEADER)
-    print("Enter search criteria (leave blank to skip):")
-    
-    set_id = input("Set ID: ").strip().lower()
-    set_name = input("Set Name: ").strip().lower()
-    set_theme = input("Set Theme: ").strip().lower()
-    set_year = input("Set Year: ").strip().lower()
-    sets = load_sets()
-    results = []
-    for s in sets:
-        matches = True
-        if set_id and set_id not in s["set_id"].lower():
-            matches = False
-        if set_name and set_name not in s["set_name"].lower():
-            matches = False
-        if set_theme and set_theme not in s["set_theme"].lower():
-            matches = False
-        if set_year and set_year not in str(s["set_year"]).lower():
-            matches = False
-        if matches:
-            results.append(s)
-    clear_screen()
-    cprint("===== Search Results =====", Colors.HEADER)
-    if not results:
-        cprint("No sets found matching your criteria.", Colors.WARNING)
-    else:
-        cprint(f"Found {len(results)} set(s):", Colors.OKGREEN)
-        print("\n{:<12} {:<30} {:<20} {:<6} {:<8} {:<8} {:<8} {:<8}".format(
-            "Set ID", "Set Name", "Theme", "Year", "Books", "Qty", "Parts", "Parted?"))
-        print("-" * 110)
-        for s in results:
-            print("{:<12} {:<30} {:<20} {:<6} {:<8} {:<8} {:<8} {:<8}".format(
-                s["set_id"],
-                s["set_name"][:30],
-                s["set_theme"][:20],
-                s["set_year"],
-                s["instruction_book_count"],
-                s["set_qty"],
-                s["parts_qty"],
-                "Yes" if s.get("part_out") else "No"
-            ))
-    input("\nPress Enter to continue...")
+    """Search for Lego sets with paging, refresh, and summary."""
+    while True:
+        clear_screen()
+        cprint("===== Search Lego Sets =====", Colors.HEADER)
+        print("Enter search criteria (leave blank to skip):")
+        set_id = input("Set ID: ").strip().lower()
+        set_name = input("Set Name: ").strip().lower()
+        print("Theme search:")
+        print("1. Type theme manually")
+        print("2. Pick from list")
+        theme_choice = input("Choose theme input method (1/2, blank to skip): ")
+
+
+        if theme_choice == "2":
+            theme, subtheme = pick_theme()
+            set_theme = f"{theme} - {subtheme}" if subtheme else theme
+        elif theme_choice == "1":
+            set_theme = input("Set Theme: ").strip()
+        else:
+            set_theme = ""
+        set_year = input("Set Year: ").strip().lower()
+
+        def get_results():
+            sets = load_sets()
+            results = []
+            for s in sets:
+                matches = True
+                if set_id and set_id not in s["set_id"].lower():
+                    matches = False
+                if set_name and set_name not in s["set_name"].lower():
+                    matches = False
+                if set_theme and set_theme not in s["set_theme"].lower():
+                    matches = False
+                if set_year and set_year not in str(s["set_year"]).lower():
+                    matches = False
+                if matches:
+                    results.append(s)
+            return results
+
+        results = get_results()
+        page_size = 10
+        page = 0
+
+        while True:
+            results = get_results()  # Always get fresh results for each page/refresh
+            total_pages = (len(results) + page_size - 1) // page_size if results else 1
+            clear_screen()
+            cprint("===== Search Results =====", Colors.HEADER)
+            if not results:
+                cprint("No sets found matching your criteria.", Colors.WARNING)
+                input("\nPress Enter to continue...")
+                return
+            else:
+                cprint(f"Found {len(results)} set(s): (Page {page+1}/{total_pages})", Colors.OKGREEN)
+                print("\n{:<12} {:<30} {:<20} {:<6} {:<8} {:<8} {:<8} {:<8}".format(
+                    "Set ID", "Set Name", "Theme", "Year", "Books", "Qty", "Parts", "Parted?"))
+                print("-" * 110)
+                start = page * page_size
+                end = start + page_size
+                for s in results[start:end]:
+                    print("{:<12} {:<30} {:<20} {:<6} {:<8} {:<8} {:<8} {:<8}".format(
+                        s["set_id"],
+                        s["set_name"][:30],
+                        s["set_theme"][:20],
+                        s["set_year"],
+                        s["instruction_book_count"],
+                        s["set_qty"],
+                        s["parts_qty"],
+                        "Yes" if s.get("part_out") else "No"
+                    ))
+                # Summary Table
+                total_qty = sum(int(s.get("set_qty", 0)) for s in results)
+                total_parts = sum(int(s.get("parts_qty", 0)) for s in results)
+                print("\n" + "="*40 + " SUMMARY " + "="*40)
+                print("{:<20} {:<20} {:<20}".format("Total Sets", "Total Qty", "Total Parts"))
+                print("{:<20} {:<20} {:<20}".format(len(results), total_qty, total_parts))
+                print("="*95)
+                # Paging controls
+                print("\n[n] Next page | [p] Previous page | [r] Refresh | [q] Quit")
+                action = input("Action: ").strip().lower()
+                if action == "n" and page < total_pages - 1:
+                    page += 1
+                elif action == "p" and page > 0:
+                    page -= 1
+                elif action == "q":
+                    return
+                elif action == "r" or action == "":
+                    # Re-fetch sets and re-apply filter, stay on same page
+                    continue
+                else:
+                    continue
 
 def remove_set(current_user):
-    """Remove a Lego set (admin only)."""
-    if current_user["role"] != "admin":
-        cprint("Only admins can remove sets.", Colors.FAIL)
-        time.sleep(1.5)
-        return
-    
+    """Remove a Lego set (admin override required for all users)."""
     clear_screen()
     cprint("===== Remove Lego Set =====", Colors.HEADER)
-    
+
     set_id = input("Enter Set ID to remove: ").strip()
-    
     sets = load_sets()
     set_index = None
-    
+
     for i, s in enumerate(sets):
         if s["set_id"] == set_id:
             set_index = i
             set_to_remove = s
             break
-    
+
     if set_index is None:
         cprint(f"Set with ID {set_id} not found.", Colors.FAIL)
         time.sleep(1.5)
         return
-    
+
     print(f"\nSet Details:")
     print(f"Set Name: {set_to_remove['set_name']}")
     print(f"Theme: {set_to_remove['set_theme']}")
@@ -745,6 +917,24 @@ def remove_set(current_user):
         print(f"  Parts Missing: {info.get('parts_missing', '')}")
         print(f"  Cost Bricklink: {info.get('cost_bricklink', '')}")
         print(f"  Cost Lego: {info.get('cost_lego', '')}")
+
+    # Admin override required
+    cprint("\nAdmin override required to remove this set.", Colors.WARNING)
+    users = load_users()
+    admin_username = input("Admin Username or UserID: ").strip()
+    admin_user = users.get(admin_username)
+    if not admin_user:
+        admin_uname, admin_user = get_user_by_id(users, admin_username)
+    if not admin_user or admin_user.get("role") != "admin":
+        cprint("Admin override failed: Not a valid admin account.", Colors.FAIL)
+        time.sleep(1.5)
+        return
+    admin_pass = getpass.getpass("Admin Password: ")
+    if admin_user["password"] != hash_password(admin_pass):
+        cprint("Admin override failed: Incorrect password.", Colors.FAIL)
+        time.sleep(1.5)
+        return
+
     confirm = input("\nAre you sure you want to remove this set? (y/n): ").strip().lower()
     if confirm == 'y':
         sets.pop(set_index)
@@ -752,7 +942,7 @@ def remove_set(current_user):
         cprint(f"Set {set_id} removed successfully.", Colors.OKGREEN)
     else:
         cprint("Removal cancelled.", Colors.WARNING)
-    
+
     input("Press Enter to continue...")
 
 def export_sets():
@@ -804,8 +994,41 @@ def export_sets():
     cprint(f"\nExport completed successfully to {export_path}", Colors.OKGREEN)
     input("Press Enter to continue...")
 
+def admin_settings_menu():
+    global INACTIVITY_TIMEOUT
+    while True:
+        clear_screen()
+        cprint("===== Admin Settings =====", Colors.HEADER)
+        print(f"1. Set inactivity timeout (current: {INACTIVITY_TIMEOUT} seconds)")
+        print("2. Return to previous menu")
+        try:
+            choice = input_with_timeout("Enter your choice: ")
+        except TimeoutError:
+            cprint("Logged out due to inactivity.", Colors.WARNING)
+            time.sleep(1)
+            return
+        if choice == "1":
+            try:
+                new_timeout = int(input_with_timeout("Enter new timeout in seconds: "))
+                if new_timeout < 30:
+                    cprint("Timeout must be at least 30 seconds.", Colors.WARNING)
+                    time.sleep(1)
+                else:
+                    INACTIVITY_TIMEOUT = new_timeout
+                    cprint(f"Inactivity timeout set to {INACTIVITY_TIMEOUT} seconds.", Colors.OKGREEN)
+                    time.sleep(1)
+            except (ValueError, TimeoutError):
+                cprint("Invalid input or timed out.", Colors.WARNING)
+                time.sleep(1)
+        elif choice == "2":
+            return
+        else:
+            cprint("Invalid choice.", Colors.WARNING)
+            time.sleep(1)
+
 def user_management_menu(admin_user, current_username):
     """Display the user management menu and handle admin choices."""
+    global INACTIVITY_TIMEOUT
     while True:
         clear_screen()
         cprint("===== KC-Sets - User Management =====", Colors.HEADER)
@@ -817,8 +1040,9 @@ def user_management_menu(admin_user, current_username):
         print("6. Change User Role")
         print("7. Edit UserID")
         print("8. Reset User Password")
-        print("9. Return to Main Menu")
-        choice = input("\nEnter your choice: ").strip()
+        print(f"9. Set inactivity timeout (current: {INACTIVITY_TIMEOUT} seconds)")
+        print("10. Return to Main Menu")
+        choice = input_with_timeout("\nEnter your choice: ")
         if choice == "1":
             list_users(admin_user)
         elif choice == "2":
@@ -836,6 +1060,20 @@ def user_management_menu(admin_user, current_username):
         elif choice == "8":
             reset_user_password(admin_user, current_username)
         elif choice == "9":
+            # Inline admin settings logic
+            try:
+                new_timeout = int(input_with_timeout("Enter new inactivity timeout in seconds: "))
+                if new_timeout < 30:
+                    cprint("Timeout must be at least 30 seconds.", Colors.WARNING)
+                    time.sleep(1)
+                else:
+                    INACTIVITY_TIMEOUT = new_timeout
+                    cprint(f"Inactivity timeout set to {INACTIVITY_TIMEOUT} seconds.", Colors.OKGREEN)
+                    time.sleep(1)
+            except (ValueError, TimeoutError):
+                cprint("Invalid input or timed out.", Colors.WARNING)
+                time.sleep(1)
+        elif choice == "10":
             return
         else:
             cprint("Invalid choice. Please try again.", Colors.WARNING)
@@ -861,14 +1099,14 @@ def main_menu(current_user):
         
         if current_user["role"] == "admin":
             print("5. User Management")
-            print("6. Remove Lego Set")
-            print("7. Logout")
-            print("8. Exit")
+            print("6. Logout")
+            print("7. Exit")
         else:
-            print("5. Logout")
-            print("6. Exit")
+            print("5. Remove Lego Set")  # Only standard users see this
+            print("6. Logout")
+            print("7. Exit")
         
-        choice = input("\nEnter your choice: ").strip()
+        choice = input_with_timeout("\nEnter your choice: ")
         
         if current_user["role"] == "admin":
             if choice == "1":
@@ -882,12 +1120,10 @@ def main_menu(current_user):
             elif choice == "5":
                 user_management_menu(current_user, current_username)
             elif choice == "6":
-                remove_set(current_user)
-            elif choice == "7":
                 cprint("Logging out...", Colors.WARNING)
                 time.sleep(1)
                 return True
-            elif choice == "8":
+            elif choice == "7":
                 cprint("Exiting KC-Parts. Goodbye!", Colors.OKGREEN)
                 return False
             else:
@@ -903,16 +1139,98 @@ def main_menu(current_user):
             elif choice == "4":
                 export_sets()
             elif choice == "5":
+                remove_set(current_user)  # Only standard users can request removal
+            elif choice == "6":
                 cprint("Logging out...", Colors.WARNING)
                 time.sleep(1)
                 return True
-            elif choice == "6":
+            elif choice == "7":
                 cprint("Exiting KC-Set. Goodbye!", Colors.OKGREEN)
                 return False
             else:
                 cprint("Invalid choice. Please try again.", Colors.WARNING)
                 time.sleep(1)
 
+def input_with_timeout(prompt, timeout=None):
+    """Input with inactivity timeout. Returns None if timed out."""
+    if timeout is None:
+        timeout = INACTIVITY_TIMEOUT
+    def handler(signum, frame):
+        raise TimeoutError
+    signal.signal(signal.SIGALRM, handler)
+    signal.alarm(timeout)
+    try:
+        value = input(prompt)
+        signal.alarm(0)
+        return value
+    except TimeoutError:
+        print("\nSession timed out due to inactivity.")
+        raise
+    finally:
+        signal.alarm(0)
+
+def pick_theme(themes=THEMES):
+    """
+    Interactive theme picker. Returns (theme, subtheme) or (theme, None).
+    """
+    while True:
+        clear_screen()
+        cprint("Select a theme (type number, or 0 to enter a custom theme):", Colors.HEADER)
+        idx = 1
+        flat = []
+        for t in themes:
+            if isinstance(t, dict):
+                main = list(t.keys())[0]
+                print(f"{idx}. {main} [+]")
+                flat.append((main, t[main]))
+            else:
+                print(f"{idx}. {t}")
+                flat.append((t, None))
+            idx += 1
+        print("0. Other (type your own theme)")
+        choice = input("Choice: ").strip()
+        if choice == "0":
+            custom = input("Enter your custom theme: ").strip()
+            if custom:
+                return (custom, None)
+            else:
+                continue
+        try:
+            choice = int(choice)
+            if 1 <= choice <= len(flat):
+                theme, sub = flat[choice-1]
+                if sub:
+                    # Subtheme picker
+                    while True:
+                        clear_screen()
+                        cprint(f"Select a subtheme for {theme} (type number, or 0 for just '{theme}'):", Colors.HEADER)
+                        for i, s in enumerate(sub, 1):
+                            if isinstance(s, dict):
+                                submain = list(s.keys())[0]
+                                print(f"{i}. {submain} [+]")
+                            else:
+                                print(f"{i}. {s}")
+                        print("0. Just use main theme")
+                        subchoice = input("Choice: ").strip()
+                        if subchoice == "0":
+                            return (theme, None)
+                        try:
+                            subchoice = int(subchoice)
+                            if 1 <= subchoice <= len(sub):
+                                s_item = sub[subchoice-1]
+                                if isinstance(s_item, dict):
+                                    submain = list(s_item.keys())[0]
+                                    # Recursively pick deeper
+                                    subtheme, subsub = pick_theme([s_item])
+                                    return (theme, f"{submain} - {subsub}" if subsub else submain)
+                                else:
+                                    return (theme, s_item)
+                        except ValueError:
+                            continue
+                else:
+                    return (theme, None)
+        except ValueError:
+            continue
 def run_app():
     """Run the KC-Parts application."""
     continue_to_login = True
