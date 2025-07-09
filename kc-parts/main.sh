@@ -8,12 +8,97 @@ import re
 from datetime import datetime
 import sys
 import random
+import signal
 
 
+PART_CATEGORY_SECTIONS = {
+    "General": [
+        "Other", "Classic", "Special Assembly", "Sticker Sheet", "Stickered Assembly", "Cardboard Sleeve", "Paper", "Plastic", "Foam", "Felt"
+    ],
+    "Animals": [
+        "Animal", "Animal, Accessory", "Animal, Air", "Animal, Body Part", "Animal, Body Part, Decorated", "Animal, Dinosaur", "Animal, Land", "Animal, Water"
+    ],
+    "Minifigures & Dolls": [
+        "Mini Dool", "Micro Doll, Body Part", "Mini Doll, Body Part", "Mini Doll, Body Wear", "Mini Doll, Hair", "Mini Doll, Head", "Mini Doll, Head, Modified",
+        "Mini Doll, Headgear", "Mini Doll, Legs", "Mini Doll, Torso", "Mini Doll, Utensil", "Minifigure", "Minifigure, Body Part", "Minifigure, Body Wear",
+        "Minifigure, Hair", "Minifigure, Head", "Minifigure, Head, Modified", "Minifigure, Headgear", "Minifigure, Headgear Accessory", "Minifigure, Legs",
+        "Minifigure, Legs, Decorated", "Minifigure, Legs, Modified", "Minifigure, Legs, Modified, Decorated", "Minifigure, Shield", "Minifigure, Torso",
+        "Minifigure, Torso Assembly", "Minifigure, Torso Assembly, Decor.", "Minifigure, Utensil", "Minifigure, Utensil, Decorated", "Minifigure, Weapon"
+    ],
+    "Bricks & Plates": [
+        "Brick", "Brick, Braille", "Brick, Decorated", "Brick, Modified", "Brick, Modified, Decorated", "Brick, Promotional", "Brick, Round", "Brick, Round, Decorated",
+        "Plate", "Plate, Decorated", "Plate, Modified", "Plate, Modified, Decorated", "Plate, Round", "Plate, Round, Decorated"
+    ],
+    "Technic": [
+        "Technic", "Technic, Axle", "Technic, Brick", "Technic, Connector", "Technic, Disk", "Technic, Figure Accessory", "Technic, Flex Cable", "Technic, Gear",
+        "Technic, Liftarm", "Technic, Liftarm, Decorated", "Technic, Link", "Technic, Panel", "Technic, Panel, Decorated", "Technic, Pin", "Technic, Plate",
+        "Technic, Shock Absorber", "Technic, Steering"
+    ],
+    "Vehicles & Aircraft": [
+        "Aircraft", "Aircraft, Decorated", "Boat", "DUPLO, Aircraft", "DUPLO, Boat", "DUPLO, Train", "DUPLO, Vehicle", "Vehicle", "Vehicle, Base", "Vehicle, Mudguard",
+        "Vehicle, Mudguard, Decorated", "Train", "Train, Track", "Monorail", "Riding Cycle", "Propeller", "Windscreen", "Windscreen, Decorated", "Wing"
+    ], # ...add more sections as needed...
+    }
 
-
-
-
+PART_COLOR_SECTIONS = {
+    "Solid Colours": [
+        "White", "Very Light Gray", "Very Light Bluish Gray", "Light Bluish Gray", "Light Gray", "Dark Gray",
+        "Dark Bluish Gray", "Black", "Dark Red", "Red", "Reddish Orange", "Dark Salmon", "Salmon", "Coral",
+        "Light Salmon", "Sand Red", "Dark Brown", "Umber", "Brown", "Reddish Brown", "Light Brown", "Medium Brown",
+        "Fabuland Brown", "Dark Tan", "Tan", "Light Nougat", "Medium Tan", "Nougat", "Medium Nougat", "Dark Nougat",
+        "Sienna", "Fabuland Orange", "Earth Orange", "Dark Orange", "Rust", "Neon Orange", "Orange", "Medium Orange",
+        "Light Orange", "Bright Light Orange", "Warm Yellowish Orange", "Very Light Orange", "Dark Yellow",
+        "Ochre Yellow", "Yellow", "Light Yellow", "Bright Light Yellow", "Neon Yellow", "Lemon", "Neon Green",
+        "Light Lime", "Yellowish Green", "Medium Lime", "Lime", "Fabuland Lime", "Olive Green", "Dark Olive Green",
+        "Dark Green", "Green", "Bright Green", "Medium Green", "Light Green", "Sand Green", "Dark Turquoise",
+        "Light Turquoise", "Aqua", "Light Aqua", "Dark Blue", "Blue", "Dark Azure", "Little Robots Blue", "Maersk Blue",
+        "Medium Azure", "Sky Blue", "Medium Blue", "Bright Light Blue", "Light Blue", "Sand Blue", "Dark BlueViolet",
+        "Violet", "BlueViolet", "Lilac", "Medium Violet", "Light Lilac", "Light Violet", "Dark Purple", "Purple",
+        "Light Purple", "Medium Lavender", "Lavender", "Clikits Lavender", "Sand Purple", "Magenta", "Dark Pink",
+        "Medium Dark Pink", "Bright Pink", "Pink", "Rose Pink"
+    ],
+    "Transparent Colours": [
+        "Trans-Clear", "Trans-Brown", "Trans-Black", "Trans-Red", "Trans-Neon Orange", "Trans-Orange",
+        "Trans-Light Orange", "Trans-Neon Yellow", "Trans-Yellow", "Trans-Neon Green", "Trans-Bright Green",
+        "Trans-Light Green", "Trans-Light Bright Green", "Trans-Green", "Trans-Dark Blue", "Trans-Medium Blue",
+        "Trans-Light Blue", "Trans-Aqua", "Trans-Light Purple", "Trans-Medium Purple", "Trans-Purple",
+        "Trans-Dark Pink", "Trans-Pink"
+    ],
+    "Chrome Colours": [
+        "Chrome Gold", "Chrome Silver", "Chrome Antique Brass", "Chrome Black", "Chrome Blue", "Chrome Green", "Chrome Pink"
+    ],
+    "Pearl Colours": [
+        "Pearl White", "Pearl Very Light Gray", "Pearl Light Gray", "Flat Silver", "Bionicle Silver", "Pearl Dark Gray",
+        "Pearl Black", "Pearl Light Gold", "Pearl Gold", "Reddish Gold", "Bionicle Gold", "Flat Dark Gold",
+        "Reddish Copper", "Copper", "Bionicle Copper", "Pearl Brown", "Pearl Red", "Pearl Green", "Pearl Blue",
+        "Pearl Sand Blue", "Pearl Sand Purple"
+    ],
+    "Satin Colours": [
+        "Satin Trans-Brown", "Satin Trans-Yellow", "Satin Trans-Clear", "Satin Trans-Bright Green",
+        "Satin Trans-Light Blue", "Satin Trans-Dark Blue", "Satin Trans-Purple", "Satin Trans-Dark Pink"
+    ],
+    "Metallic Colours": [
+        "Metallic Silver", "Metallic Green", "Metallic Gold", "Metallic Copper"
+    ],
+    "Milky Colours": [
+        "Milky White", "Glow In Dark White", "Glow In Dark Opaque", "Glow In Dark Trans"
+    ],
+    "Glitter Colours": [
+        "Glitter Trans-Clear", "Glitter Trans-Orange", "Glitter Trans-Neon Green", "Glitter Trans-Light Blue",
+        "Glitter Trans-Purple", "Glitter Trans-Dark Pink"
+    ],
+    "Speckle Colours": [
+        "Speckle Black-Silver", "Speckle Black-Gold", "Speckle Black-Copper", "Speckle DBGray-Silver"
+    ],
+    "Modulex Colours": [
+        "Mx White", "Mx Light Bluish Gray", "Mx Light Gray", "Mx Charcoal Gray", "Mx Tile Gray", "Mx Black",
+        "Mx Tile Brown", "Mx Terracotta", "Mx Brown", "Mx Buff", "Mx Red", "Mx Pink Red", "Mx Orange",
+        "Mx Light Orange", "Mx Light Yellow", "Mx Ochre Yellow", "Mx Lemon", "Mx Pastel Green", "Mx Olive Green",
+        "Mx Aqua Green", "Mx Teal Blue", "Mx Tile Blue", "Mx Medium Blue", "Mx Pastel Blue", "Mx Violet",
+        "Mx Pink", "Mx Clear", "Mx Foil Dark Gray", "Mx Foil Light Gray", "Mx Foil Dark Green", "Mx Foil Light Green",
+        "Mx Foil Dark Blue", "Mx Foil Light Blue", "Mx Foil Violet", "Mx Foil Red", "Mx Foil Yellow", "Mx Foil Orange"
+    ]
+}
 # ANSI color codes for better UI
 class Colors:
     HEADER = '\033[95m'
@@ -60,6 +145,23 @@ if not os.path.exists(PARTS_PATH):
     with open(PARTS_PATH, 'w') as f:
         json.dump([], f, indent=4)
 
+DEFAULT_TIMEOUT = 180  # seconds
+
+TIMEOUT_FILE = "timeout.json"
+TIMEOUT_PATH = os.path.join(CONFIG_DIR, TIMEOUT_FILE)
+
+def load_timeout():
+    if not os.path.exists(TIMEOUT_PATH):
+        return DEFAULT_TIMEOUT
+    with open(TIMEOUT_PATH, 'r') as f:
+        return json.load(f).get("timeout", DEFAULT_TIMEOUT)
+
+def save_timeout(timeout):
+    with open(TIMEOUT_PATH, 'w') as f:
+        json.dump({"timeout": timeout}, f, indent=4)
+
+SESSION_TIMEOUT = load_timeout()
+
 def clear_screen():
     """Clear the terminal screen."""
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -103,7 +205,7 @@ def login():
     users = load_users()
     empty_count = 0
     while True:
-        login_input = input("Username or UserID: ").strip()
+        login_input = timeout_input("Username or UserID: ").strip()
         if login_input == "":
             empty_count += 1
             if empty_count >= 2:
@@ -437,6 +539,7 @@ def reset_user_password(admin_user):
 
 def user_management_menu(admin_user, current_username):
     """Display the user management menu and handle admin choices."""
+    global SESSION_TIMEOUT
     while True:
         clear_screen()
         cprint("===== KC-Parts - User Management =====", Colors.HEADER)
@@ -447,9 +550,10 @@ def user_management_menu(admin_user, current_username):
         print("5. Change User Role")
         print("6. Edit UserID")
         print("7. Reset User Password")
-        print("8. Return to Main Menu")
+        print("8. Set Session Timeout")
+        print("9. Return to Main Menu")
         
-        choice = input("\nEnter your choice: ").strip()
+        choice = timeout_input("\nEnter your choice: ").strip()
         
         if choice == "1":
             list_users(admin_user)
@@ -466,6 +570,19 @@ def user_management_menu(admin_user, current_username):
         elif choice == "7":
             reset_user_password(admin_user)
         elif choice == "8":
+            # Set session timeout
+            try:
+                new_timeout = int(timeout_input("Enter new session timeout in seconds (30-3600): ").strip())
+                if 30 <= new_timeout <= 3600:
+                    save_timeout(new_timeout)
+                    SESSION_TIMEOUT = new_timeout
+                    cprint(f"Session timeout set to {new_timeout} seconds.", Colors.OKGREEN)
+                else:
+                    cprint("Timeout must be between 30 and 3600 seconds.", Colors.FAIL)
+            except ValueError:
+                cprint("Invalid input. Timeout not changed.", Colors.FAIL)
+            input("Press Enter to continue...")
+        elif choice == "9":
             return
         else:
             cprint("Invalid choice. Please try again.", Colors.WARNING)
@@ -498,7 +615,8 @@ def add_part():
         return
 
     # --- Category picker (was theme picker) ---
-    part_category = input("Part Category (Technic, Brick, Slope, etc.) [Required]: ").strip()
+    print("\nSelect Part Category:")
+    part_category = pick_category_section()
     if not part_category:
         cprint("Part Category is required.", Colors.FAIL)
         time.sleep(1.5)
@@ -514,7 +632,8 @@ def add_part():
         except ValueError:
             cprint("Please enter a valid quantity (positive number).", Colors.FAIL)
     
-    part_color = input("Part Color (Red, Green, Blue, Trans-blue, etc.) [Required]: ").strip()
+    print("\nSelect Part Color:")
+    part_color = pick_color_section()
     if not part_color:
         cprint("Part Color is required.", Colors.FAIL)
         time.sleep(1.5)
@@ -579,14 +698,16 @@ def edit_part():
                 cprint("Quantity must be a positive number.", Colors.FAIL)
         except ValueError:
             cprint("Invalid quantity. Keeping previous value.", Colors.WARNING)
-    
-    part_category = input(f"Part Category [{part['part_category']}]: ").strip()
-    if part_category:
-        part["part_category"] = part_category
-    
-    part_color = input(f"Part Color [{part['part_color']}]: ").strip()
-    if part_color:
-        part["part_color"] = part_color
+
+    print("\nSelect Part Category (or press Enter to keep current):")
+    change_cat = input("Change category? (y/N): ").strip().lower()
+    if change_cat == "y":
+        part["part_category"] = pick_category_section()
+
+    print("\nSelect Part Color (or press Enter to keep current):")
+    change_col = input("Change color? (y/N): ").strip().lower()
+    if change_col == "y":
+        part["part_color"] = pick_color_section()
     
     part["updated_at"] = datetime.now().isoformat()
     save_parts(parts)
@@ -653,23 +774,54 @@ def remove_part(current_user):
     input("Press Enter to continue...")
 
 def search_parts():
-    """Search for Lego parts."""
+    """Search for Lego parts with paging, refresh, and total summary."""
+    def get_filtered_results(parts, search_term, cat_filter, col_filter):
+        results = []
+        for part in parts:
+            if ((search_term in part["part_id"].lower() or search_term in part["part_name"].lower()) and
+                (not cat_filter or part["part_category"] == cat_filter) and
+                (not col_filter or part["part_color"] == col_filter)):
+                results.append(part)
+        return results
+
     clear_screen()
     cprint("===== Search Lego Parts =====", Colors.HEADER)
     search_term = input("Enter part name or ID to search: ").strip().lower()
     parts = load_parts()
-    results = []
-    for part in parts:
-        if (search_term in part["part_id"].lower() or
-            search_term in part["part_name"].lower()):
-            results.append(part)
+
+    print("\nFilter by Part Category? (leave blank to skip)")
+    cat_filter = ""
+    if input("Filter by category? (y/N): ").strip().lower() == "y":
+        cat_filter = pick_category_section()
+
+    print("\nFilter by Part Color? (leave blank to skip)")
+    col_filter = ""
+    if input("Filter by color? (y/N): ").strip().lower() == "y":
+        col_filter = pick_color_section()
+
+    results = get_filtered_results(parts, search_term, cat_filter, col_filter)
+
     if not results:
         cprint("No parts found.", Colors.WARNING)
-    else:
+        input("\nPress Enter to continue...")
+        return
+
+    page_size = 10
+    page = 0
+
+    while True:
+        total_parts = len(results)
+        total_qty = sum(part.get("part_qty", 0) for part in results)
+        clear_screen()
+        cprint("===== Search Results =====", Colors.OKCYAN)
+        start = page * page_size
+        end = start + page_size
+        page_results = results[start:end]
+
         print("{:<10} {:<10} {:<30} {:<8} {:<15} {:<15}".format(
             "Part ID", "Long ID", "Name", "Qty", "Category", "Color"))
         print("-" * 90)
-        for part in results:
+        for part in page_results:
             print("{:<10} {:<10} {:<30} {:<8} {:<15} {:<15}".format(
                 part["part_id"],
                 part["long_part_id"],
@@ -678,7 +830,103 @@ def search_parts():
                 part["part_category"][:15],
                 part["part_color"][:15]
             ))
-    input("\nPress Enter to continue...")
+
+        # Show summary table at the bottom
+        print("\n" + "-" * 40)
+        print("{:<20} {:<10}".format("Total Results:", total_parts))
+        print("{:<20} {:<10}".format("Total Quantity:", total_qty))
+        print("-" * 40)
+
+        # Paging controls
+        print("\n[n] Next page | [p] Previous page | [r] Refresh | [q] Quit")
+        action = input("Action: ").strip().lower()
+        if action == "n":
+            if end < total_parts:
+                page += 1
+            else:
+                cprint("Already at last page.", Colors.WARNING)
+                time.sleep(1)
+        elif action == "p":
+            if page > 0:
+                page -= 1
+            else:
+                cprint("Already at first page.", Colors.WARNING)
+                time.sleep(1)
+        elif action == "r":
+            # Reload parts and re-apply filter
+            parts = load_parts()
+            results = get_filtered_results(parts, search_term, cat_filter, col_filter)
+            page = 0
+            cprint("Results refreshed.", Colors.OKGREEN)
+            time.sleep(1)
+            if not results:
+                cprint("No parts found after refresh.", Colors.WARNING)
+                input("\nPress Enter to continue...")
+                return
+        elif action == "q":
+            break
+        else:
+            cprint("Invalid action.", Colors.WARNING)
+            time.sleep(1)
+
+def pick_from_list(options, prompt="Choose an option:"):
+    """Display a numbered picker for a list and return the selected value."""
+    while True:
+        for i, opt in enumerate(options, 1):
+            print(f"{i}. {opt}")
+        choice = input(f"{prompt} [1-{len(options)}]: ").strip()
+        if choice.isdigit() and 1 <= int(choice) <= len(options):
+            return options[int(choice) - 1]
+        else:
+            cprint("Invalid selection. Please try again.", Colors.FAIL)
+
+def pick_category_section():
+    """Pick a section, then a category within that section."""
+    sections = list(PART_CATEGORY_SECTIONS.keys())
+    print("\nSections:")
+    for i, sec in enumerate(sections, 1):
+        print(f"{i}. {sec}")
+    while True:
+        sec_choice = input("Select section number: ").strip()
+        if sec_choice.isdigit() and 1 <= int(sec_choice) <= len(sections):
+            section = sections[int(sec_choice) - 1]
+            break
+        else:
+            cprint("Invalid section. Try again.", Colors.FAIL)
+    categories = PART_CATEGORY_SECTIONS[section]
+    print(f"\nCategories in {section}:")
+    for i, cat in enumerate(categories, 1):
+        print(f"{i}. {cat}")
+    while True:
+        cat_choice = input("Select category number: ").strip()
+        if cat_choice.isdigit() and 1 <= int(cat_choice) <= len(categories):
+            return categories[int(cat_choice) - 1]
+        else:
+            cprint("Invalid category. Try again.", Colors.FAIL)
+
+def pick_color_section():
+    """Pick a color section, then a color within that section."""
+    sections = list(PART_COLOR_SECTIONS.keys())
+    print("\nColor Sections:")
+    for i, sec in enumerate(sections, 1):
+        print(f"{i}. {sec}")
+    while True:
+        sec_choice = input("Select color section number: ").strip()
+        if sec_choice.isdigit() and 1 <= int(sec_choice) <= len(sections):
+            section = sections[int(sec_choice) - 1]
+            break
+        else:
+            cprint("Invalid section. Try again.", Colors.FAIL)
+    colors = PART_COLOR_SECTIONS[section]
+    print(f"\nColors in {section}:")
+    for i, color in enumerate(colors, 1):
+        print(f"{i}. {color}")
+    while True:
+        color_choice = input("Select color number: ").strip()
+        if color_choice.isdigit() and 1 <= int(color_choice) <= len(colors):
+            return colors[int(color_choice) - 1]
+        else:
+            cprint("Invalid color. Try again.", Colors.FAIL)
 
 def main_menu(current_user):
     """Display the main menu and handle user choices."""
@@ -739,6 +987,24 @@ def run_app():
         else:
             # Login failed, but we'll loop back to the login screen
             continue_to_login = True
+
+# Timeout handling
+class TimeoutException(Exception):
+    pass
+
+def timeout_handler(signum, frame):
+    raise TimeoutException
+
+def timeout_input(prompt, timeout=SESSION_TIMEOUT):
+    signal.signal(signal.SIGALRM, timeout_handler)
+    signal.alarm(timeout)
+    try:
+        value = input(prompt)
+        signal.alarm(0)
+        return value
+    except TimeoutException:
+        print("\nSession timed out due to inactivity.")
+        sys.exit(0)
 
 if __name__ == "__main__":
     print("Welcome to KC-Parts!")
