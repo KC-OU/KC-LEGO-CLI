@@ -1,0 +1,55 @@
+
+
+
+# files exclude
+README - Notes-Writeup.md
+
+
+
+
+# Byte-compiled / cache files
+__pycache__/
+*.py[cod]
+*.so
+
+# C/C++ object files and binaries
+*.o
+*.out
+*.a
+*.so
+*.exe
+
+# Logs and databases
+*.log
+*.sqlite3
+*.db
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE/editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build directories
+build/
+dist/
+*.egg-info/
+
+# Node.js
+node_modules/
+
+# Python virtual environments
+venv/
+.env/
+ENV/
+env/
+
+# Backup files
+*~
+*.bak
+
+# Custom excludes
