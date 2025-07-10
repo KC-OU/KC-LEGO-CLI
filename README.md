@@ -93,6 +93,10 @@ PART_CATEGORY_SECTIONS = {
         "Vehicle, Mudguard, Decorated", "Train", "Train, Track", "Monorail", "Riding Cycle", "Propeller", "Windscreen", "Windscreen, Decorated", "Wing"
     ], # ...add more sections as needed...
 }
+```
+
+
+```bash
 {
 PART_COLOR_SECTIONS = {
     "Solid Colours": [
@@ -153,6 +157,9 @@ PART_COLOR_SECTIONS = {
         "Mx Foil Dark Blue", "Mx Foil Light Blue", "Mx Foil Violet", "Mx Foil Red", "Mx Foil Yellow", "Mx Foil Orange"
     ]
 }
+```
+```bash
+
 {
 THEMES = [
     "Animal Crossing",
