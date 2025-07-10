@@ -270,7 +270,7 @@ THEMES = [
 }
 ```
 ```bash
-clear
+            clear
             center "==============================================="
             center "This project is licensed under the MIT License."
             center "You can view the license at:"
@@ -306,5 +306,5 @@ clear
             echo
             center "Press Enter to return to the menu."
             read
-            ;;
+;;
 ```
