@@ -944,9 +944,14 @@ def main_menu(current_user):
         print("2. Edit Lego Part")
         print("3. Search Lego Parts")
         print("4. Export Parts")
-        print("5. Remove Lego Part")  # <-- Always show this option
-        print("6. Logout")
-        print("7. Exit")
+        print("5. Remove Lego Part (Admin approval required)")
+        menu_idx = 6
+        # Show User Management for admins only
+        if current_user["role"] == "admin":
+            print(f"{menu_idx}. User Management")
+            menu_idx += 1
+        print(f"{menu_idx}. Logout")
+        print(f"{menu_idx+1}. Exit")
         
         choice = input("\nEnter your choice: ").strip()
         
@@ -960,11 +965,13 @@ def main_menu(current_user):
             export_parts()
         elif choice == "5":
             remove_part(current_user)
-        elif choice == "6":
+        elif current_user["role"] == "admin" and choice == "6":
+            user_management_menu(current_user, current_username)
+        elif (current_user["role"] == "admin" and choice == "7") or (current_user["role"] != "admin" and choice == "6"):
             cprint("Logging out...", Colors.WARNING)
             time.sleep(1)
             return True
-        elif choice == "7":
+        elif (current_user["role"] == "admin" and choice == "8") or (current_user["role"] != "admin" and choice == "7"):
             cprint("Exiting KC-Parts. Goodbye!", Colors.OKGREEN)
             return False
         else:

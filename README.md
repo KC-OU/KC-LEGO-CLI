@@ -40,7 +40,6 @@ change user role
 edit user id
 resest user passowrd
 
-
 in the user login screen, allow the user to tap enter 2 times and it comes up with a promt saying do you want to go back to the main menu or no and it repets. and a change for exiting the script
 
 
@@ -308,3 +307,90 @@ THEMES = [
             read
 ;;
 ```
+
+### Lego Set and retiring and Retired Lego Sets
+
+Need to remove questions and add new ones, and the new added ones, allow them to be searched, edited and removed. 
+
+ - Non Retired Lego Sets
+    - Remove quesions
+        - Lego Set Instruction Book Number (Optional)
+        - How many instruction books (Required):
+        - How many of the set do I have (Required):
+        - Have you parted out this set and kept only the missing parts? (yes/no):
+
+    - Keep and Add
+        - Qty of Parts in the set (Optional)
+        - Cost New or Used (Required)
+        - Have you completed this sets on Studio (Required) - if say no, please write a reason
+        - Have you created a page on google site (Required) - if say no, please write a reason 
+        - Have you created a slides on Powwerpoint (Required) - if say no, please write a reason
+        - Have you filled in the forms and updated PowerBi for the powerpoint (Required) - if say no, please write a reason - after they put in the reason, put this url in for the form to fill out - https://forms.cloud.microsoft/e/pkpMNsnmNB
+
+
+
+
+ - Retiring and Retired Lego Sets
+    - Remove quesions
+        - Lego Set Instruction Book Number (Optional)
+        - How many instruction books (Required):
+        - How many of the set do I have (Required):
+        - Have you parted out this set and kept only the missing parts? (yes/no):
+
+    - Keep and Add
+        
+        - Qty of Parts in the set (Optional)
+
+    - New lines
+        - Is the set retired or retiring (Required)
+            - Retired - New path divergant
+                - When did the set get retired (Required)
+                - How much is the retired set on Bricklink or eBay (Optional)
+                - Have you completed this sets on Studio (Required) - if say no, please write a reason
+                - Have you created a page on google site (Required) - if say no, please write a reason 
+                - Have you created a slides on Powwerpoint (Required) - if say no, please write a reason
+                - Have you filled in the forms and updated PowerBi for the powerpoint (Required) - if say no, please write a reason - after they put in the reason, put this url in for the form to fill out - https://forms.cloud.microsoft/e/eWZNdZ9viL 
+            - Retiring
+                - When is the estimate retired date (Required)
+                - Current cost of the set (Optional)
+                - Have you completed this sets on Studio (Required) - if say no, please write a reason
+                - Have you created a page on google site (Required) - if say no, please write a reason 
+                - Have you created a slides on Powwerpoint (Required) - if say no, please write a reason
+                - Have you filled in the forms and updated PowerBi for the powerpoint (Required) - if say no, please write a reason - after they put in the reason, put this url in for the form to fill out - https://forms.cloud.microsoft/e/eWZNdZ9viL 
+
+If there is any error with the searched, edited and removed, please can you fix them , change the script, to Retiring and Retired Sets.
+        
+--- 
+
+### New Menu design
+
+
+Before the lego menu, add a menu for Leego mangament System, to divert to the  normal main screen for the sets a have a section of parts, sets, Minifigures and more.
+
+- Lego mangament System, will keep the same functionalty as it was before the change.
+
+- Lego Lookup
+    - Search for part
+        - Lookup with part id
+        - lookup with design id
+        - Lookup with Name
+        - Lookup with colour
+        - lookup with category
+    Once you have a list of parts, you can then filter it more for a concist search
+
+    **For Example** If I was searching for a Arch in the name category and got given 7 pages worth, would filter it by the clour like (red) and the stud size like 1x3x1, and will get a short description of the part in a table, and the relevent prices from lego, bricklink and rebrickable.  
+
+    - search for set
+        - Lookup with set id
+        - Lookup with Name
+        - Lookup with total pieces
+        - lookup with theme
+    - **Comming Soon**
+
+
+
+
+
+
+
+ 

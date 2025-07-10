@@ -140,7 +140,7 @@ def cprint(text, color=Colors.ENDC, end='\n'):
 # Define the data files
 USERS_FILE = "users.json"
 SETS_FILE = "sets.json"
-CONFIG_DIR = os.path.expanduser("~/.kc-sets")
+CONFIG_DIR = os.path.expanduser("~/.kc-nonretried-sets")  # Changed directory name
 
 # Ensure the config directory exists
 if not os.path.exists(CONFIG_DIR):
@@ -218,7 +218,7 @@ def get_user_by_username_or_id(users, value):
 def login():
     """Handle user login."""
     clear_screen()
-    cprint("===== KC-Sets Login =====", Colors.HEADER)
+    cprint("===== KC-Non Retried Sets Login =====", Colors.HEADER)
     users = load_users()
     enter_count = 0
     while True:
@@ -601,10 +601,7 @@ def add_set():
         return
 
     theme, subtheme = pick_theme()
-    if subtheme:
-        set_theme = f"{theme} - {subtheme}"
-    else:
-        set_theme = theme
+    set_theme = f"{theme} - {subtheme}" if subtheme else theme
     if not set_theme:
         cprint("Set Theme is required.", Colors.FAIL)
         time.sleep(1.5)
@@ -616,74 +613,61 @@ def add_set():
         time.sleep(1.5)
         return
 
-    instruction_book_number = input("Lego Set Instruction Book Number (Optional): ").strip()
+    # Qty of Parts in the set (Optional)
+    parts_qty = input("Qty of Parts in the set (Optional): ").strip()
+    try:
+        parts_qty = int(parts_qty) if parts_qty else None
+    except ValueError:
+        cprint("Please enter a valid number.", Colors.FAIL)
+        return
 
-    while True:
-        try:
-            instruction_book_count = int(input("How many instruction books (Required): ").strip())
-            if instruction_book_count < 0:
-                raise ValueError
-            break
-        except ValueError:
-            cprint("Please enter a valid number.", Colors.FAIL)
+    # Cost New or Used (Required)
+    cost_new_used = input("Cost New or Used (Required): ").strip()
+    if not cost_new_used:
+        cprint("Cost New or Used is required.", Colors.FAIL)
+        time.sleep(1.5)
+        return
 
-    while True:
-        try:
-            set_qty = int(input("How many of the set do I have (Required): ").strip())
-            if set_qty < 0:
-                raise ValueError
-            break
-        except ValueError:
-            cprint("Please enter a valid number.", Colors.FAIL)
+    # Studio completion
+    completed_studio = input("Have you completed this set on Studio? (yes/no): ").strip().lower()
+    studio_reason = ""
+    if completed_studio != "yes":
+        studio_reason = input("Please write a reason: ").strip()
 
-    while True:
-        try:
-            parts_qty = int(input("Qty of Parts in the set (Required): ").strip())
-            if parts_qty < 0:
-                raise ValueError
-            break
-        except ValueError:
-            cprint("Please enter a valid number.", Colors.FAIL)
+    # Google Site page
+    created_google_site = input("Have you created a page on Google Site? (yes/no): ").strip().lower()
+    google_site_reason = ""
+    if created_google_site != "yes":
+        google_site_reason = input("Please write a reason: ").strip()
 
-    part_out = input("Have you parted out this set and kept only the missing parts? (yes/no): ").strip().lower()
-    part_out_info = {}
-    if part_out == "yes":
-        while True:
-            try:
-                total_parts_counted = int(input("Total Parts Counted (Required): ").strip())
-                if total_parts_counted < 0:
-                    raise ValueError
-                break
-            except ValueError:
-                cprint("Please enter a valid number.", Colors.FAIL)
-        while True:
-            try:
-                parts_missing = int(input("Parts Missing (Required): ").strip())
-                if parts_missing < 0:
-                    raise ValueError
-                break
-            except ValueError:
-                cprint("Please enter a valid number.", Colors.FAIL)
-        cost_bricklink = input("Cost of parts on Bricklink - If Missing (Optional): ").strip()
-        cost_lego = input("Cost of parts on Lego - If Missing (Optional): ").strip()
-        part_out_info = {
-            "total_parts_counted": total_parts_counted,
-            "parts_missing": parts_missing,
-            "cost_bricklink": cost_bricklink,
-            "cost_lego": cost_lego
-        }
+    # PowerPoint slides
+    created_powerpoint = input("Have you created slides on PowerPoint? (yes/no): ").strip().lower()
+    powerpoint_reason = ""
+    if created_powerpoint != "yes":
+        powerpoint_reason = input("Please write a reason: ").strip()
+
+    # PowerBI forms
+    updated_powerbi = input("Have you filled in the forms and updated PowerBi for the PowerPoint? (yes/no): ").strip().lower()
+    powerbi_reason = ""
+    if updated_powerbi != "yes":
+        powerbi_reason = input("Please write a reason: ").strip()
+        cprint("Please fill out this form: https://forms.cloud.microsoft/e/pkpMNsnmNB", Colors.WARNING)
 
     new_set = {
         "set_id": set_id,
         "set_name": set_name,
         "set_theme": set_theme,
         "set_year": set_year,
-        "instruction_book_number": instruction_book_number,
-        "instruction_book_count": instruction_book_count,
-        "set_qty": set_qty,
         "parts_qty": parts_qty,
-        "part_out": part_out == "yes",
-        "part_out_info": part_out_info,
+        "cost_new_used": cost_new_used,
+        "completed_studio": completed_studio,
+        "studio_reason": studio_reason,
+        "created_google_site": created_google_site,
+        "google_site_reason": google_site_reason,
+        "created_powerpoint": created_powerpoint,
+        "powerpoint_reason": powerpoint_reason,
+        "updated_powerbi": updated_powerbi,
+        "powerbi_reason": powerbi_reason,
         "created_at": datetime.now().isoformat(),
         "updated_at": datetime.now().isoformat()
     }
@@ -697,95 +681,68 @@ def edit_set():
     """Edit an existing Lego set."""
     clear_screen()
     cprint("===== Edit Lego Set =====", Colors.HEADER)
-    
     set_id = input("Enter Set ID to edit: ").strip()
-    
     sets = load_sets()
     set_index = None
-    
     for i, s in enumerate(sets):
         if s["set_id"] == set_id:
             set_index = i
             break
-    
     if set_index is None:
         cprint(f"Set with ID {set_id} not found.", Colors.FAIL)
         time.sleep(1.5)
         return
-    
     s = sets[set_index]
     print(f"\nEditing Set: {s['set_name']} (ID: {s['set_id']})")
-    
-    # Display current values and get new values
     set_name = input(f"Set Name [{s['set_name']}]: ").strip()
     if set_name:
         s["set_name"] = set_name
-
     print(f"Current Theme: {s['set_theme']}")
     theme, subtheme = pick_theme()
-    if subtheme:
-        s["set_theme"] = f"{theme} - {subtheme}"
-    else:
-        s["set_theme"] = theme
-    
+    s["set_theme"] = f"{theme} - {subtheme}" if subtheme else theme
     set_year = input(f"Set Year [{s['set_year']}]: ").strip()
     if set_year:
         s["set_year"] = set_year
-    
-    instruction_book_number = input(f"Lego Set Instruction Book Number [{s['instruction_book_number']}]: ").strip()
-    if instruction_book_number:
-        s["instruction_book_number"] = instruction_book_number
-    
-    instruction_book_count = input(f"How many instruction books [{s['instruction_book_count']}]: ").strip()
-    if instruction_book_count:
-        try:
-            s["instruction_book_count"] = int(instruction_book_count)
-        except ValueError:
-            cprint("Invalid number. Keeping previous value.", Colors.WARNING)
-    
-    set_qty = input(f"How many of the set do I have [{s['set_qty']}]: ").strip()
-    if set_qty:
-        try:
-            s["set_qty"] = int(set_qty)
-        except ValueError:
-            cprint("Invalid number. Keeping previous value.", Colors.WARNING)
-    
-    parts_qty = input(f"Qty of Parts in the set [{s['parts_qty']}]: ").strip()
+    parts_qty = input(f"Qty of Parts in the set [{s.get('parts_qty','')}]: ").strip()
     if parts_qty:
         try:
             s["parts_qty"] = int(parts_qty)
         except ValueError:
             cprint("Invalid number. Keeping previous value.", Colors.WARNING)
-    
-    part_out = input(f"Have you parted out this set and kept only the missing parts? (yes/no) [{'yes' if s.get('part_out') else 'no'}]: ").strip().lower()
-    if part_out:
-        s["part_out"] = part_out == "yes"
-        if s["part_out"]:
-            part_out_info = s.get("part_out_info", {})
-            total_parts_counted = input(f"Total Parts Counted [{part_out_info.get('total_parts_counted', '')}]: ").strip()
-            if total_parts_counted:
-                try:
-                    part_out_info["total_parts_counted"] = int(total_parts_counted)
-                except ValueError:
-                    cprint("Invalid number. Keeping previous value.", Colors.WARNING)
-            parts_missing = input(f"Parts Missing [{part_out_info.get('parts_missing', '')}]: ").strip()
-            if parts_missing:
-                try:
-                    part_out_info["parts_missing"] = int(parts_missing)
-                except ValueError:
-                    cprint("Invalid number. Keeping previous value.", Colors.WARNING)
-            cost_bricklink = input(f"Cost of parts on Bricklink - If Missing [{part_out_info.get('cost_bricklink', '')}]: ").strip()
-            if cost_bricklink:
-                part_out_info["cost_bricklink"] = cost_bricklink
-            cost_lego = input(f"Cost of parts on Lego - If Missing [{part_out_info.get('cost_lego', '')}]: ").strip()
-            if cost_lego:
-                part_out_info["cost_lego"] = cost_lego
-            s["part_out_info"] = part_out_info
+    cost_new_used = input(f"Cost New or Used [{s.get('cost_new_used','')}]: ").strip()
+    if cost_new_used:
+        s["cost_new_used"] = cost_new_used
+    completed_studio = input(f"Have you completed this set on Studio? (yes/no) [{s.get('completed_studio','')}]: ").strip().lower()
+    if completed_studio:
+        s["completed_studio"] = completed_studio
+        if completed_studio != "yes":
+            s["studio_reason"] = input(f"Please write a reason [{s.get('studio_reason','')}]: ").strip()
         else:
-            s["part_out_info"] = {}
+            s["studio_reason"] = ""
+    created_google_site = input(f"Have you created a page on Google Site? (yes/no) [{s.get('created_google_site','')}]: ").strip().lower()
+    if created_google_site:
+        s["created_google_site"] = created_google_site
+        if created_google_site != "yes":
+            s["google_site_reason"] = input(f"Please write a reason [{s.get('google_site_reason','')}]: ").strip()
+        else:
+            s["google_site_reason"] = ""
+    created_powerpoint = input(f"Have you created slides on PowerPoint? (yes/no) [{s.get('created_powerpoint','')}]: ").strip().lower()
+    if created_powerpoint:
+        s["created_powerpoint"] = created_powerpoint
+        if created_powerpoint != "yes":
+            s["powerpoint_reason"] = input(f"Please write a reason [{s.get('powerpoint_reason','')}]: ").strip()
+        else:
+            s["powerpoint_reason"] = ""
+    updated_powerbi = input(f"Have you filled in the forms and updated PowerBi for the PowerPoint? (yes/no) [{s.get('updated_powerbi','')}]: ").strip().lower()
+    if updated_powerbi:
+        s["updated_powerbi"] = updated_powerbi
+        if updated_powerbi != "yes":
+            s["powerbi_reason"] = input(f"Please write a reason [{s.get('powerbi_reason','')}]: ").strip()
+            cprint("Please fill out this form: https://forms.cloud.microsoft/e/pkpMNsnmNB", Colors.WARNING)
+        else:
+            s["powerbi_reason"] = ""
     s["updated_at"] = datetime.now().isoformat()
     save_sets(sets)
-    
     cprint(f"Set {set_id} updated successfully.", Colors.OKGREEN)
     input("Press Enter to continue...")
 
@@ -844,32 +801,35 @@ def search_sets():
                 return
             else:
                 cprint(f"Found {len(results)} set(s): (Page {page+1}/{total_pages})", Colors.OKGREEN)
-                print("\n{:<12} {:<30} {:<20} {:<6} {:<8} {:<8} {:<8} {:<8}".format(
-                    "Set ID", "Set Name", "Theme", "Year", "Books", "Qty", "Parts", "Parted?"))
-                print("-" * 110)
+                print("\n{:<12} {:<30} {:<20} {:<6} {:<10} {:<15} {:<10} {:<10} {:<10} {:<10}".format(
+                    "Set ID", "Set Name", "Theme", "Year", "Parts Qty", "Cost", "Studio", "GoogleSite", "PPT", "PowerBI"))
+                print("-" * 140)
                 start = page * page_size
                 end = start + page_size
                 for s in results[start:end]:
-                    print("{:<12} {:<30} {:<20} {:<6} {:<8} {:<8} {:<8} {:<8}".format(
+                    print("{:<12} {:<30} {:<20} {:<6} {:<10} {:<15} {:<10} {:<10} {:<10} {:<10}".format(
                         s["set_id"],
                         s["set_name"][:30],
                         s["set_theme"][:20],
                         s["set_year"],
-                        s["instruction_book_count"],
-                        s["set_qty"],
-                        s["parts_qty"],
-                        "Yes" if s.get("part_out") else "No"
+                        s.get("parts_qty", ""),
+                        s.get("cost_new_used", ""),
+                        s.get("completed_studio", ""),
+                        s.get("created_google_site", ""),
+                        s.get("created_powerpoint", ""),
+                        s.get("updated_powerbi", "")
                     ))
                 # Summary Table
-                total_qty = sum(int(s.get("set_qty", 0)) for s in results)
-                total_parts = sum(int(s.get("parts_qty", 0)) for s in results)
+                total_parts = sum(int(s.get("parts_qty", 0) or 0) for s in results)
                 print("\n" + "="*40 + " SUMMARY " + "="*40)
-                print("{:<20} {:<20} {:<20}".format("Total Sets", "Total Qty", "Total Parts"))
-                print("{:<20} {:<20} {:<20}".format(len(results), total_qty, total_parts))
-                print("="*95)
+                print("{:<20} {:<20}".format("Total Sets", "Total Parts"))
+                print("{:<20} {:<20}".format(len(results), total_parts))
+                print("="*80)
                 # Paging controls
                 print("\n[n] Next page | [p] Previous page | [r] Refresh | [q] Quit")
-                action = input("Action: ").strip().lower()
+                action = input("Action: ")
+
+
                 if action == "n" and page < total_pages - 1:
                     page += 1
                 elif action == "p" and page > 0:
@@ -906,17 +866,12 @@ def remove_set(current_user):
     print(f"Set Name: {set_to_remove['set_name']}")
     print(f"Theme: {set_to_remove['set_theme']}")
     print(f"Year: {set_to_remove['set_year']}")
-    print(f"Instruction Book Number: {set_to_remove['instruction_book_number']}")
-    print(f"Instruction Book Count: {set_to_remove['instruction_book_count']}")
-    print(f"Set Qty: {set_to_remove['set_qty']}")
-    print(f"Parts Qty: {set_to_remove['parts_qty']}")
-    print(f"Parted Out: {'Yes' if set_to_remove.get('part_out') else 'No'}")
-    if set_to_remove.get('part_out'):
-        info = set_to_remove.get('part_out_info', {})
-        print(f"  Total Parts Counted: {info.get('total_parts_counted', '')}")
-        print(f"  Parts Missing: {info.get('parts_missing', '')}")
-        print(f"  Cost Bricklink: {info.get('cost_bricklink', '')}")
-        print(f"  Cost Lego: {info.get('cost_lego', '')}")
+    print(f"Qty of Parts in the set: {set_to_remove.get('parts_qty', '')}")
+    print(f"Cost New or Used: {set_to_remove.get('cost_new_used', '')}")
+    print(f"Completed on Studio: {set_to_remove.get('completed_studio', '')} ({set_to_remove.get('studio_reason', '')})")
+    print(f"Google Site Page: {set_to_remove.get('created_google_site', '')} ({set_to_remove.get('google_site_reason', '')})")
+    print(f"PowerPoint Slides: {set_to_remove.get('created_powerpoint', '')} ({set_to_remove.get('powerpoint_reason', '')})")
+    print(f"PowerBI Updated: {set_to_remove.get('updated_powerbi', '')} ({set_to_remove.get('powerbi_reason', '')})")
 
     # Admin override required
     cprint("\nAdmin override required to remove this set.", Colors.WARNING)
@@ -971,26 +926,22 @@ def export_sets():
         export_path = os.path.join(os.getcwd(), f"{filename}.txt")
         with open(export_path, 'w') as f:
             f.write("KC-Sets Export - {}\n".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
-            f.write("\n{:<12} {:<30} {:<20} {:<6} {:<8} {:<8} {:<8} {:<8}\n".format(
-                "Set ID", "Set Name", "Theme", "Year", "Books", "Qty", "Parts", "Parted?"))
-            f.write("-" * 110 + "\n")
+            f.write("\n{:<12} {:<30} {:<20} {:<6} {:<10} {:<15} {:<10} {:<10} {:<10} {:<10}\n".format(
+                "Set ID", "Set Name", "Theme", "Year", "Parts Qty", "Cost", "Studio", "GoogleSite", "PPT", "PowerBI"))
+            f.write("-" * 140 + "\n")
             for s in sets:
-                f.write("{:<12} {:<30} {:<20} {:<6} {:<8} {:<8} {:<8} {:<8}\n".format(
+                f.write("{:<12} {:<30} {:<20} {:<6} {:<10} {:<15} {:<10} {:<10} {:<10} {:<10}\n".format(
                     s["set_id"],
                     s["set_name"][:30],
                     s["set_theme"][:20],
                     s["set_year"],
-                    s["instruction_book_count"],
-                    s["set_qty"],
-                    s["parts_qty"],
-                    "Yes" if s.get("part_out") else "No"
+                    s.get("parts_qty", ""),
+                    s.get("cost_new_used", ""),
+                    s.get("completed_studio", ""),
+                    s.get("created_google_site", ""),
+                    s.get("created_powerpoint", ""),
+                    s.get("updated_powerbi", "")
                 ))
-                if s.get("part_out"):
-                    info = s.get("part_out_info", {})
-                    f.write("    Total Parts Counted: {}\n".format(info.get("total_parts_counted", "")))
-                    f.write("    Parts Missing: {}\n".format(info.get("parts_missing", "")))
-                    f.write("    Cost Bricklink: {}\n".format(info.get("cost_bricklink", "")))
-                    f.write("    Cost Lego: {}\n".format(info.get("cost_lego", "")))
     cprint(f"\nExport completed successfully to {export_path}", Colors.OKGREEN)
     input("Press Enter to continue...")
 
@@ -1031,7 +982,7 @@ def user_management_menu(admin_user, current_username):
     global INACTIVITY_TIMEOUT
     while True:
         clear_screen()
-        cprint("===== KC-Sets - User Management =====", Colors.HEADER)
+        cprint("===== KC-Non Retried Sets - User Management =====", Colors.HEADER)
         print("1. List Users")
         print("2. List Specific User")
         print("3. Create User")
@@ -1090,66 +1041,75 @@ def main_menu(current_user):
             break
             
     while True:
-        clear_screen()
-        cprint(f"===== KC-Sets - Logged in as {current_user['first_name']} {current_user['last_name']} ({current_user['role']}) =====", Colors.OKCYAN)
-        print("1. Add Lego Set")
-        print("2. Edit Lego Set")
-        print("3. Search Lego Sets")
-        print("4. Export Sets")
-        
-        if current_user["role"] == "admin":
-            print("5. User Management")
-            print("6. Logout")
-            print("7. Exit")
-        else:
-            print("5. Remove Lego Set")  # Only standard users see this
-            print("6. Logout")
-            print("7. Exit")
-        
-        choice = input_with_timeout("\nEnter your choice: ")
-        
-        if current_user["role"] == "admin":
-            if choice == "1":
-                add_set()
-            elif choice == "2":
-                edit_set()
-            elif choice == "3":
-                search_sets()
-            elif choice == "4":
-                export_sets()
-            elif choice == "5":
-                user_management_menu(current_user, current_username)
-            elif choice == "6":
-                cprint("Logging out...", Colors.WARNING)
-                time.sleep(1)
-                return True
-            elif choice == "7":
-                cprint("Exiting KC-Parts. Goodbye!", Colors.OKGREEN)
-                return False
+        try:
+            clear_screen()
+            cprint(f"===== KC-Non Retried Sets - Logged in as {current_user['first_name']} {current_user['last_name']} ({current_user['role']}) =====", Colors.OKCYAN)
+            print("1. Add Lego Set")
+            print("2. Edit Lego Set")
+            print("3. Search Lego Sets")
+            print("4. Export Sets")
+            
+            if current_user["role"] == "admin":
+                print("5. User Management")
+                print("6. Remove Lego Set (Admin approval required)")
+                print("7. Logout")
+                print("8. Exit")
             else:
-                cprint("Invalid choice. Please try again.", Colors.WARNING)
-                time.sleep(1)
-        else:
-            if choice == "1":
-                add_set()
-            elif choice == "2":
-                edit_set()
-            elif choice == "3":
-                search_sets()
-            elif choice == "4":
-                export_sets()
-            elif choice == "5":
-                remove_set(current_user)  # Only standard users can request removal
-            elif choice == "6":
-                cprint("Logging out...", Colors.WARNING)
-                time.sleep(1)
-                return True
-            elif choice == "7":
-                cprint("Exiting KC-Set. Goodbye!", Colors.OKGREEN)
-                return False
+                print("5. Remove Lego Part (Admin approval required)")  # Only standard users see this
+                print("6. Logout")
+                print("7. Exit")
+            
+            choice = input_with_timeout("\nEnter your choice: ")
+            
+            if current_user["role"] == "admin":
+                if choice == "1":
+                    add_set()
+                elif choice == "2":
+                    edit_set()
+                elif choice == "3":
+                    search_sets()
+                elif choice == "4":
+                    export_sets()                                                                                                                                                           
+                elif choice == "5":
+                    user_management_menu(current_user, current_username)
+                elif choice == "6":
+                    remove_set(current_user)
+                elif choice == "7":
+                    cprint("Logging out...", Colors.WARNING)
+                    time.sleep(1)
+                    return True
+                elif choice == "8":
+                    cprint("Exiting KC-Non Retried Sets. Goodbye!", Colors.OKGREEN)
+                    return False
+                else:
+                    cprint("Invalid choice. Please try again.", Colors.WARNING)
+                    time.sleep(1)
             else:
-                cprint("Invalid choice. Please try again.", Colors.WARNING)
-                time.sleep(1)
+                if choice == "1":
+                    add_set()
+                elif choice == "2":
+                    edit_set()
+                elif choice == "3":
+                    search_sets()
+                elif choice == "4":
+                    export_sets()
+                elif choice == "5":
+                    remove_set(current_user)  # Only standard users can request removal
+                elif choice == "6":
+                    cprint("Logging out...", Colors.WARNING)
+                    time.sleep(1)
+                    return True
+                elif choice == "7":
+                    cprint("Exiting KC-Non Retried Sets. Goodbye!", Colors.OKGREEN)
+                    return False
+                else:
+                    cprint("Invalid choice. Please try again.", Colors.WARNING)
+                    time.sleep(1)
+        except TimeoutError:
+            print()  # <-- Add this line to ensure a new line
+            cprint("Session timed out due to inactivity.", Colors.WARNING)
+            time.sleep(1)
+            return False  # or sys.exit(0)
 
 def input_with_timeout(prompt, timeout=None):
     """Input with inactivity timeout. Returns None if timed out."""
@@ -1164,8 +1124,7 @@ def input_with_timeout(prompt, timeout=None):
         signal.alarm(0)
         return value
     except TimeoutError:
-        print("\nSession timed out due to inactivity.")
-        raise
+        raise  # Only raise, do not print here
     finally:
         signal.alarm(0)
 
@@ -1217,33 +1176,37 @@ def pick_theme(themes=THEMES):
                         try:
                             subchoice = int(subchoice)
                             if 1 <= subchoice <= len(sub):
-                                s_item = sub[subchoice-1]
-                                if isinstance(s_item, dict):
-                                    submain = list(s_item.keys())[0]
-                                    # Recursively pick deeper
-                                    subtheme, subsub = pick_theme([s_item])
-                                    return (theme, f"{submain} - {subsub}" if subsub else submain)
+                                ssub = sub[subchoice-1]
+                                if isinstance(ssub, dict):
+                                    # Nested subtheme
+                                    submain = list(ssub.keys())[0]
+                                    # You can add more nested logic here if needed
+                                    return (theme, submain)
                                 else:
-                                    return (theme, s_item)
+                                    return (theme, ssub)
                         except ValueError:
                             continue
-                else:
-                    return (theme, None)
         except ValueError:
             continue
+
 def run_app():
-    """Run the KC-Parts application."""
-    continue_to_login = True
-
-    while continue_to_login:
-        current_user = login()
-
-        if current_user:
-            continue_to_login = main_menu(current_user)
-        else:
-            # Login failed, but we'll loop back to the login screen
-            continue_to_login = True
+    while True:
+        user = login()
+        if user == "__EXIT__":
+            cprint("Exiting KC-Non Retried Sets. Goodbye!", Colors.OKGREEN)
+            sys.exit(0)
+        if not user:
+            continue
+        while True:
+            try:
+                continue_to_login = main_menu(user)
+                if continue_to_login:
+                    break
+                else:
+                    sys.exit(0)
+            except TimeoutError:
+                cprint("Session timed out due to inactivity.", Colors.WARNING)
+                sys.exit(0)
 
 if __name__ == "__main__":
-    print("Welcome to KC-Sets!")
     run_app()

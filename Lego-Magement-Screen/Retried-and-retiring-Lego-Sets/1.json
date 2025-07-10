@@ -1,0 +1,22 @@
+[
+    {
+        "set_id": "1",
+        "set_name": "1",
+        "set_theme": "11",
+        "set_year": "11",
+        "parts_qty": 1,
+        "status": "retired",
+        "retired_date": "2020",
+        "retired_cost": "1050",
+        "completed_studio": "no",
+        "studio_reason": "4",
+        "created_google_site": "no",
+        "google_site_reason": "5",
+        "created_powerpoint": "no",
+        "powerpoint_reason": "5",
+        "updated_powerbi": "no",
+        "powerbi_reason": "5",
+        "created_at": "2025-07-10T18:26:48.261856",
+        "updated_at": "2025-07-10T18:26:48.261896"
+    }
+]
