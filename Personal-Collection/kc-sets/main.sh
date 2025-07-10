@@ -226,10 +226,10 @@ def login():
         if username_or_id == "":
             enter_count += 1
             if enter_count == 2:
-                cprint("Do you want to exit the script? (yes/no)", Colors.WARNING)
+                cprint("Do you want to exit the script? (y/n)", Colors.WARNING)
                 resp = input("> ").strip().lower()
-                if resp == "yes":
-                    sys.exit(0)
+                if resp == "y":
+                     return "__EXIT__"  # Signal to exit the script
                 else:
                     enter_count = 0
                     continue
