@@ -269,4 +269,42 @@ THEMES = [
 ]
 }
 ```
-
+```bash
+clear
+            center "==============================================="
+            center "This project is licensed under the MIT License."
+            center "You can view the license at:"
+            center "https://opensource.org/license/mit"
+            center "==============================================="
+            center ""
+            center "Full Decription"
+            center "---------------"
+            center "               "
+            center "Copyright <YEAR> <COPYRIGHT HOLDER>"
+            center ""
+            center "Permission is hereby granted, free of charge, to any" 
+            center "person obtaining a copy of this software and associated" 
+            center "documentation files (the "Software"), to deal in the"
+            center "Software without restriction, including without limitation" 
+            center "the rights to use, copy, modify, merge, publish, distribute," 
+            center "sublicense, and/or sell copies of the Software, and to permit" 
+            center "persons to whom the Software is furnished to do so, subject"
+            center "to the following conditions:"
+            center "                                                           "
+            center "The above copyright notice and this permission notice shall"
+            center "be included in all copies or substantial portions of the Software."
+            center "                                                                  "
+            center "THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND," 
+            center "EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES"
+            center "OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT." 
+            center "IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM," 
+            center "DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR" 
+            center "OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE"
+            center "OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."
+            center ""
+            center "==========================================================================="
+            echo
+            center "Press Enter to return to the menu."
+            read
+            ;;
+```
