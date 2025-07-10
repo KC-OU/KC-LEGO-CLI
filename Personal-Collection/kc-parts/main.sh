@@ -97,8 +97,7 @@ PART_COLOR_SECTIONS = {
         "Mx Aqua Green", "Mx Teal Blue", "Mx Tile Blue", "Mx Medium Blue", "Mx Pastel Blue", "Mx Violet",
         "Mx Pink", "Mx Clear", "Mx Foil Dark Gray", "Mx Foil Light Gray", "Mx Foil Dark Green", "Mx Foil Light Green",
         "Mx Foil Dark Blue", "Mx Foil Light Blue", "Mx Foil Violet", "Mx Foil Red", "Mx Foil Yellow", "Mx Foil Orange"
-    ]
-}
+    ]}
 # ANSI color codes for better UI
 class Colors:
     HEADER = '\033[95m'
