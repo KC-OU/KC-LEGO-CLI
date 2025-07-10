@@ -63,6 +63,8 @@ Allow in Add Lego Set, Edit Lego Sets, and search, have checklist or interactive
 
 ---
 
+```bash
+{
 PART_CATEGORY_SECTIONS = {
     "General": [
         "Other", "Classic", "Special Assembly", "Sticker Sheet", "Stickered Assembly", "Cardboard Sleeve", "Paper", "Plastic", "Foam", "Felt"
@@ -90,8 +92,8 @@ PART_CATEGORY_SECTIONS = {
         "Aircraft", "Aircraft, Decorated", "Boat", "DUPLO, Aircraft", "DUPLO, Boat", "DUPLO, Train", "DUPLO, Vehicle", "Vehicle", "Vehicle, Base", "Vehicle, Mudguard",
         "Vehicle, Mudguard, Decorated", "Train", "Train, Track", "Monorail", "Riding Cycle", "Propeller", "Windscreen", "Windscreen, Decorated", "Wing"
     ], # ...add more sections as needed...
-    }
-
+}
+{
 PART_COLOR_SECTIONS = {
     "Solid Colours": [
         "White", "Very Light Gray", "Very Light Bluish Gray", "Light Bluish Gray", "Light Gray", "Dark Gray",
@@ -150,7 +152,8 @@ PART_COLOR_SECTIONS = {
         "Mx Pink", "Mx Clear", "Mx Foil Dark Gray", "Mx Foil Light Gray", "Mx Foil Dark Green", "Mx Foil Light Green",
         "Mx Foil Dark Blue", "Mx Foil Light Blue", "Mx Foil Violet", "Mx Foil Red", "Mx Foil Yellow", "Mx Foil Orange"
     ]
-
+}
+{
 THEMES = [
     "Animal Crossing",
     "Architecture",
@@ -257,3 +260,6 @@ THEMES = [
     ]},
     "Other"
 ]
+}
+```
+
