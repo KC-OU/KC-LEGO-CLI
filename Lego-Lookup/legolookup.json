@@ -20030,7 +20030,7 @@
    "Set ID": "21026-1",
    "Set Name": "Venice",
    "Year": "2016",
-   "Theme": "Skylines",
+   "Theme": "Skyline",
    "Total Pieces": "212"
  },
  {
@@ -20045,7 +20045,9 @@
    "Set Name": "New York City",
    "Year": "2016",
    "Theme": "Skylines",
-   "Total Pieces": "598"
+   "Total Pieces": "598",
+   "When is it retiring": "2025",
+   "Cost (£)": "44.99"
  },
  {
    "Set ID": "21029-1",
@@ -20171,7 +20173,9 @@
    "Set Name": "Paris",
    "Year": "2019",
    "Theme": "Skylines",
-   "Total Pieces": "649"
+   "Total Pieces": "649",
+   "When is it retiring": "2025",
+   "Cost (£)": "44.99"
  },
  {
    "Set ID": "21045-1",
@@ -22012,7 +22016,9 @@
    "Set Name": "Motorized Lighthouse",
    "Year": "2022",
    "Theme": "LEGO Ideas and CUUSOO",
-   "Total Pieces": "2065"
+   "Total Pieces": "2065",
+   "When is it retiring": "2025",
+   "Cost (£)": "259.99"
  },
  {
    "Set ID": "21336-1",
@@ -22075,7 +22081,9 @@
    "Set Name": "Viking Village",
    "Year": "2023",
    "Theme": "LEGO Ideas and CUUSOO",
-   "Total Pieces": "2104"
+   "Total Pieces": "2104",
+   "When is it retiring": "2025",
+   "Cost (£)": "124.99"
  },
  {
    "Set ID": "21344-1",
@@ -47947,7 +47955,9 @@
    "Set Name": "Imperial Dropship vs. Rebel Scout Speeder",
    "Year": "2024",
    "Theme": "Star Wars",
-   "Total Pieces": "383"
+   "Total Pieces": "383",
+   "When is it retiring": "2025",
+   "Cost (£)": "34.99"
  },
  {
    "Set ID": "40756-1",
@@ -123029,7 +123039,9 @@
    "Set Name": "Darth Vader",
    "Year": "2021",
    "Theme": "Star Wars",
-   "Total Pieces": "834"
+   "Total Pieces": "834",
+   "When is it retiring": "2025",
+   "Cost (£)": "69.99"
  },
  {
    "Set ID": "75305-1",
@@ -123421,7 +123433,9 @@
    "Set Name": "Coruscant Guard Gunship",
    "Year": "2023",
    "Theme": "Star Wars",
-   "Total Pieces": "1083"
+   "Total Pieces": "1083",
+   "When is it retiring": "2025",
+   "Cost (£)": "129.99"
  },
  {
    "Set ID": "75355-1",

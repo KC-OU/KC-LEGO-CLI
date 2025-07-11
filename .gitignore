@@ -11,6 +11,8 @@ README - Notes-Writeup.md
 __pycache__/
 *.py[cod]
 *.so
+.png
+.jpg
 
 # C/C++ object files and binaries
 *.o
