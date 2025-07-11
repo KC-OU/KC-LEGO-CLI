@@ -13,6 +13,7 @@ Retired_or_Retiring_LEGO_SETS_SCRIPT="$HOME/Lego/Lego-Magement-Screen/Retried-an
 
 
 LegoLookup="$HOME/Lego/Lego-Lookup/lookup-set.sh"
+LegoPartLookup="$HOME/Lego/Lego-Lookup/lookup-part.sh"
 
 
 # Function to center text
@@ -30,7 +31,7 @@ show_license_agreement() {
         return
     fi
     clear
-    center "==============================================="
+    center "====================LegoPartLookup==========================="
     center "           LICENSE AGREEMENT SCREEN            "
     center "==============================================="
     echo
@@ -173,9 +174,8 @@ lego_lookup_menu() {
         echo
         center "1. Lookup by Set"
         center "2. Lookup by Part"
-        center "3. Lookup by Minifigure"
-        center "4. Back"
-        center "5. Exit"
+        center "3. Back"
+        center "4. Exit"
         echo
 
         read -rp "$(center 'Select an option [1-5]: ')" ll_choice
@@ -186,17 +186,12 @@ lego_lookup_menu() {
                 "$LegoLookup"
                 ;;
             2)
-                center "Part lookup coming soon!"
-                sleep 1
+                "$LegoPartLookup"
                 ;;
             3)
-                center "Minifigure lookup coming soon!"
-                sleep 1
-                ;;
-            4)
                 break  # Back to startup menu
                 ;;
-            5)
+            4)
                 center "Goodbye!"
                 sleep 1
                 exit 0
