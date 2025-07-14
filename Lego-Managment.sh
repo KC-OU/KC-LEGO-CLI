@@ -214,8 +214,9 @@ startup_menu() {
         echo
         center "1. Lego Management System"
         center "2. Lego Lookup"
-        center "3. View License"
-        center "4. Exit"
+        center "3. Lego - Kanban "
+        center "4. View License"
+        center "5. Exit"
         echo
 
         read -rp "$(center 'Select an option [1-4]: ')" start_choice
@@ -228,6 +229,10 @@ startup_menu() {
                 lego_lookup_menu
                 ;;
             3)
+                rust-kanban
+                ;;
+
+            4)
                 clear
                 center "==============================================="
                 center "This project is licensed under the MIT License."
@@ -265,7 +270,7 @@ startup_menu() {
                 center "Press Enter to return to the menu."
                 read
                 ;;
-            4)
+            5)
                 center "Goodbye!"
                 sleep 1
                 exit 0
