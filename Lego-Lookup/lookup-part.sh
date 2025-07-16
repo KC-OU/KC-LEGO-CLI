@@ -51,7 +51,9 @@ while IFS=$'\t' read -r number name category; do
         "$number" "${name:0:40}" "${category:0:30}"
 done <<< "$results"
 
-echo
-center "Search complete."
-echo
-read -p "Press Enter to exit..."
+ echo
+        center "Search complete."
+        echo
+        read -rp "Would you like to search again? (y/n): " again
+        [[ "$again" =~ ^[Yy]$ ]] || break
+    done

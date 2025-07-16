@@ -365,7 +365,7 @@ If there is any error with the searched, edited and removed, please can you fix 
 ### New Menu design
 
 
-Before the lego menu, add a menu for Leego mangament System, to divert to the  normal main screen for the sets a have a section of parts, sets, Minifigures and more.
+Before and after the lience screen the lego menu, add a menu for Leego mangament System, to divert to the  normal main screen for the sets a have a section of parts, sets, Minifigures and more.
 
 - Lego mangament System, will keep the same functionalty as it was before the change.
 
@@ -380,14 +380,13 @@ Before the lego menu, add a menu for Leego mangament System, to divert to the  n
 
     **For Example** If I was searching for a Arch in the name category and got given 7 pages worth, would filter it by the clour like (red) and the stud size like 1x3x1, and will get a short description of the part in a table, and the relevent prices from lego, bricklink and rebrickable.  
 
-    - search for set
-        - Lookup with set id
-        - Lookup with Name
-        - Lookup with total pieces
-        - lookup with theme
+    -  
     - **Comming Soon**
 
+    Have the lookup list search from a json file for the result.
 
+
+**For Example** If I was searching for a Harry Potter Set. and only know the theme of the set, them you will filter the search for the year and total pirces and will get a short description of the part in a table, and the relevent prices from lego, bricklink and rebrickable.
 
 
 

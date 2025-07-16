@@ -10,7 +10,7 @@ Non_Retired_LEGO_SETS_SCRIPT="$HOME/Lego/Lego-Magement-Screen/Non-Retired-Lego-S
 Retired_or_Retiring_LEGO_SETS_SCRIPT="$HOME/Lego/Lego-Magement-Screen/Retried-and-retiring-Lego-Sets/main.sh"
 # KC Retired Sets
 
-
+PARTOUT_SCRIPT="$HOME/Lego/Lego-Magement-Screen/Personal-Collection/kc-sets-partout/main.sh"
 
 LegoLookup="$HOME/Lego/Lego-Lookup/lookup-set.sh"
 LegoPartLookup="$HOME/Lego/Lego-Lookup/lookup-part.sh"
@@ -105,7 +105,8 @@ personal_collection_menu() {
             2)
                 "$SETS_SCRIPT"
                 ;;
-            3)
+            
+            3) 
                 break
                 ;;
             *)

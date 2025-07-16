@@ -13,6 +13,8 @@ import signal
 INACTIVITY_TIMEOUT = 180  # Default inactivity timeout in seconds
 ### Adding Themes
 
+SETLOOKUP_JSON="$HOME/Lego/Lego-Lookup/legolookup.json"
+
 THEMES = [
     "Animal Crossing",
     "Architecture",
@@ -577,11 +579,55 @@ def reset_user_password(admin_user, current_username):
     input("Press Enter to continue...")
 
 def add_set():
-    """Add a new Lego set."""
+    """Add a new Lego set, with optional lookup for auto-fill."""
     clear_screen()
     cprint("===== Add Lego Set =====", Colors.HEADER)
 
-    set_id = input("Set ID (Required): ").strip()
+    lookup_choice = input("Would you like to search for a set to auto-fill details? (y/n): ").strip().lower()
+    auto_data = {}
+
+    if lookup_choice == "y":
+        lookup_type = input("Search by [1] Set ID or [2] Set Name? (1/2): ").strip()
+        sets = load_sets()
+        found_set = None
+        if lookup_type == "1":
+            search_id = input("Enter Set ID: ").strip()
+            for s in sets:
+                if s["set_id"].lower() == search_id.lower():
+                    found_set = s
+                    break
+        elif lookup_type == "2":
+            search_name = input("Enter Set Name: ").strip().lower()
+            for s in sets:
+                if search_name in s["set_name"].lower():
+                    found_set = s
+                    break
+        if found_set:
+            cprint(f"Found set: {found_set['set_name']} (ID: {found_set['set_id']})", Colors.OKGREEN)
+            auto_data = found_set
+        else:
+            # Try legolookup.json for parts quantity
+            lookup_path = os.path.expanduser("~/Lego/Lego-Lookup/legolookup.json")
+            try:
+                with open(lookup_path, "r") as f:
+                    lookup_data = json.load(f)
+                # Try to match by Set ID (assuming index matches Set ID)
+                parts_qty = ""
+                if lookup_type == "1" and search_id.isdigit():
+                    idx = int(search_id)
+                    if 0 <= idx < len(lookup_data):
+                        parts_qty = lookup_data[idx].get("Total Pieces", "")
+                # Optionally, you could try to match by name if your lookup file supports it
+                if parts_qty:
+                    cprint(f"Set not found in main database, but found in lookup file. Parts Qty: {parts_qty}", Colors.WARNING)
+                    auto_data["parts_qty"] = int(parts_qty)
+                else:
+                    cprint("No matching set found in database or lookup file. You will need to enter details manually.", Colors.WARNING)
+            except Exception as e:
+                cprint(f"Lookup file error: {e}", Colors.FAIL)
+            time.sleep(1.5)
+
+    set_id = input(f"Set ID (Required) [{auto_data.get('set_id', '')}]: ").strip() or auto_data.get('set_id', '')
     if not set_id:
         cprint("Set ID is required.", Colors.FAIL)
         time.sleep(1.5)
@@ -594,7 +640,7 @@ def add_set():
             time.sleep(1.5)
             return
 
-    set_name = input("Set Name (Required): ").strip()
+    set_name = input(f"Set Name (Required) [{auto_data.get('set_name', '')}]: ").strip() or auto_data.get('set_name', '')
     if not set_name:
         cprint("Set Name is required.", Colors.FAIL)
         time.sleep(1.5)
@@ -610,18 +656,30 @@ def add_set():
         time.sleep(1.5)
         return
 
-    set_year = input("Set Year (Required): ").strip()
+    set_year = input(f"Set Year (Required) [{auto_data.get('set_year', '')}]: ").strip() or auto_data.get('set_year', '')
     if not set_year:
         cprint("Set Year is required.", Colors.FAIL)
         time.sleep(1.5)
         return
 
-    instruction_book_number = input("Lego Set Instruction Book Number (Optional): ").strip()
+    instruction_book_number = input(f"Lego Set Instruction Book Number (Optional) [{auto_data.get('instruction_book_number', '')}]: ").strip() or auto_data.get('instruction_book_number', '')
 
     while True:
         try:
             instruction_book_count = int(input("How many instruction books (Required): ").strip())
             if instruction_book_count < 0:
+                raise ValueError
+            break
+        except ValueError:
+            cprint("Please enter a valid number.", Colors.FAIL)
+
+    while True:
+        try:
+            parts_qty = input(f"Qty of Parts in the set (Required) [{auto_data.get('parts_qty', '')}]: ").strip()
+            if not parts_qty and "parts_qty" in auto_data:
+                parts_qty = auto_data["parts_qty"]
+            parts_qty = int(parts_qty)
+            if parts_qty < 0:
                 raise ValueError
             break
         except ValueError:
@@ -1220,33 +1278,24 @@ def pick_theme(themes=THEMES):
                         try:
                             subchoice = int(subchoice)
                             if 1 <= subchoice <= len(sub):
-                                s_item = sub[subchoice-1]
-                                if isinstance(s_item, dict):
-                                    submain = list(s_item.keys())[0]
-                                    # Recursively pick deeper
-                                    subtheme, subsub = pick_theme([s_item])
-                                    return (theme, f"{submain} - {subsub}" if subsub else submain)
+                                chosen_sub = sub[subchoice-1]
+                                if isinstance(chosen_sub, dict):
+                                    # Handle nested subthemes if needed
+                                    submain = list(chosen_sub.keys())[0]
+                                    return (f"{theme} - {submain}", None)
                                 else:
-                                    return (theme, s_item)
+                                    return (theme, chosen_sub)
                         except ValueError:
                             continue
                 else:
                     return (theme, None)
         except ValueError:
             continue
-def run_app():
-    """Run the KC-Parts application."""
-    continue_to_login = True
-
-    while continue_to_login:
-        current_user = login()
-
-        if current_user:
-            continue_to_login = main_menu(current_user)
-        else:
-            # Login failed, but we'll loop back to the login screen
-            continue_to_login = True
-
 if __name__ == "__main__":
-    print("Welcome to KC-Sets!")
-    run_app()
+    user = login()
+    if user == "__EXIT__" or user is None:
+        sys.exit(0)
+    while True:
+        result = main_menu(user)
+        if result is False:
+            break
