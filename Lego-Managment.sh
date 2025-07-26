@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+cc/cccc#!/usr/bin/env bash
 TODO: NEED TO FIX THE SCRIPTS DUE TO ERROS
 # Paths to your scripts
 PARTS_SCRIPT="$HOME/Lego/Lego-Magement-Screen/Personal-Collection/kc-parts/main.sh"
@@ -31,7 +31,7 @@ show_license_agreement() {
         return
     fi
     clear
-    center "====================LegoPartLookup==========================="
+    center "==============================================="
     center "           LICENSE AGREEMENT SCREEN            "
     center "==============================================="
     echo
@@ -215,9 +215,8 @@ startup_menu() {
         echo
         center "1. Lego Management System"
         center "2. Lego Lookup"
-        center "3. Lego - Kanban "
-        center "4. View License"
-        center "5. Exit"
+        center "3. View License"
+        center "4. Exit"
         echo
 
         read -rp "$(center 'Select an option [1-4]: ')" start_choice
@@ -229,11 +228,8 @@ startup_menu() {
             2)
                 lego_lookup_menu
                 ;;
-            3)
-                rust-kanban
-                ;;
 
-            4)
+            3)
                 clear
                 center "==============================================="
                 center "This project is licensed under the MIT License."
@@ -271,7 +267,7 @@ startup_menu() {
                 center "Press Enter to return to the menu."
                 read
                 ;;
-            5)
+            4)
                 center "Goodbye!"
                 sleep 1
                 exit 0

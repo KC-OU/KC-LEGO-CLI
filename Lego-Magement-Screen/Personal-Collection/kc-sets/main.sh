@@ -583,69 +583,28 @@ def add_set():
     clear_screen()
     cprint("===== Add Lego Set =====", Colors.HEADER)
 
-    lookup_choice = input("Would you like to search for a set to auto-fill details? (y/n): ").strip().lower()
-    auto_data = {}
+    sets = load_sets()
 
-    if lookup_choice == "y":
-        lookup_type = input("Search by [1] Set ID or [2] Set Name? (1/2): ").strip()
-        sets = load_sets()
-        found_set = None
-        if lookup_type == "1":
-            search_id = input("Enter Set ID: ").strip()
-            for s in sets:
-                if s["set_id"].lower() == search_id.lower():
-                    found_set = s
-                    break
-        elif lookup_type == "2":
-            search_name = input("Enter Set Name: ").strip().lower()
-            for s in sets:
-                if search_name in s["set_name"].lower():
-                    found_set = s
-                    break
-        if found_set:
-            cprint(f"Found set: {found_set['set_name']} (ID: {found_set['set_id']})", Colors.OKGREEN)
-            auto_data = found_set
-        else:
-            # Try legolookup.json for parts quantity
-            lookup_path = os.path.expanduser("~/Lego/Lego-Lookup/legolookup.json")
-            try:
-                with open(lookup_path, "r") as f:
-                    lookup_data = json.load(f)
-                # Try to match by Set ID (assuming index matches Set ID)
-                parts_qty = ""
-                if lookup_type == "1" and search_id.isdigit():
-                    idx = int(search_id)
-                    if 0 <= idx < len(lookup_data):
-                        parts_qty = lookup_data[idx].get("Total Pieces", "")
-                # Optionally, you could try to match by name if your lookup file supports it
-                if parts_qty:
-                    cprint(f"Set not found in main database, but found in lookup file. Parts Qty: {parts_qty}", Colors.WARNING)
-                    auto_data["parts_qty"] = int(parts_qty)
-                else:
-                    cprint("No matching set found in database or lookup file. You will need to enter details manually.", Colors.WARNING)
-            except Exception as e:
-                cprint(f"Lookup file error: {e}", Colors.FAIL)
-            time.sleep(1.5)
-
-    set_id = input(f"Set ID (Required) [{auto_data.get('set_id', '')}]: ").strip() or auto_data.get('set_id', '')
+    # Prompt for Set ID
+    set_id = input("Set ID (Required): ").strip()
     if not set_id:
         cprint("Set ID is required.", Colors.FAIL)
         time.sleep(1.5)
         return
-
-    sets = load_sets()
     for s in sets:
         if s["set_id"] == set_id:
             cprint(f"Set with ID {set_id} already exists. Use Edit instead.", Colors.WARNING)
             time.sleep(1.5)
             return
 
-    set_name = input(f"Set Name (Required) [{auto_data.get('set_name', '')}]: ").strip() or auto_data.get('set_name', '')
+    # Prompt for Set Name
+    set_name = input("Set Name (Required): ").strip()
     if not set_name:
         cprint("Set Name is required.", Colors.FAIL)
         time.sleep(1.5)
         return
 
+    # Theme selection
     theme, subtheme = pick_theme()
     if subtheme:
         set_theme = f"{theme} - {subtheme}"
@@ -656,13 +615,13 @@ def add_set():
         time.sleep(1.5)
         return
 
-    set_year = input(f"Set Year (Required) [{auto_data.get('set_year', '')}]: ").strip() or auto_data.get('set_year', '')
+    set_year = input("Set Year (Required): ").strip()
     if not set_year:
         cprint("Set Year is required.", Colors.FAIL)
         time.sleep(1.5)
         return
 
-    instruction_book_number = input(f"Lego Set Instruction Book Number (Optional) [{auto_data.get('instruction_book_number', '')}]: ").strip() or auto_data.get('instruction_book_number', '')
+    instruction_book_number = input("Lego Set Instruction Book Number (Optional): ").strip()
 
     while True:
         try:
@@ -675,9 +634,7 @@ def add_set():
 
     while True:
         try:
-            parts_qty = input(f"Qty of Parts in the set (Required) [{auto_data.get('parts_qty', '')}]: ").strip()
-            if not parts_qty and "parts_qty" in auto_data:
-                parts_qty = auto_data["parts_qty"]
+            parts_qty = input("Qty of Parts in the set (Required): ").strip()
             parts_qty = int(parts_qty)
             if parts_qty < 0:
                 raise ValueError
@@ -694,158 +651,100 @@ def add_set():
         except ValueError:
             cprint("Please enter a valid number.", Colors.FAIL)
 
+    # Ask if the set is parted out
+    parted_out = None
     while True:
-        try:
-            parts_qty = int(input("Qty of Parts in the set (Required): ").strip())
-            if parts_qty < 0:
-                raise ValueError
+        parted_prompt = input("Is this set parted out? (y/n): ").strip().lower()
+        if parted_prompt in ("y", "yes"):
+            parted_out = True
             break
-        except ValueError:
-            cprint("Please enter a valid number.", Colors.FAIL)
+        elif parted_prompt in ("n", "no"):
+            parted_out = False
+            break
+        else:
+            cprint("Please enter 'y' or 'n'.", Colors.WARNING)
 
-    part_out = input("Have you parted out this set and kept only the missing parts? (yes/no): ").strip().lower()
-    part_out_info = {}
-    if part_out == "yes":
-        while True:
-            try:
-                total_parts_counted = int(input("Total Parts Counted (Required): ").strip())
-                if total_parts_counted < 0:
-                    raise ValueError
-                break
-            except ValueError:
-                cprint("Please enter a valid number.", Colors.FAIL)
-        while True:
-            try:
-                parts_missing = int(input("Parts Missing (Required): ").strip())
-                if parts_missing < 0:
-                    raise ValueError
-                break
-            except ValueError:
-                cprint("Please enter a valid number.", Colors.FAIL)
-        cost_bricklink = input("Cost of parts on Bricklink - If Missing (Optional): ").strip()
-        cost_lego = input("Cost of parts on Lego - If Missing (Optional): ").strip()
-        part_out_info = {
-            "total_parts_counted": total_parts_counted,
-            "parts_missing": parts_missing,
-            "cost_bricklink": cost_bricklink,
-            "cost_lego": cost_lego
-        }
-
-    new_set = {
+    # Save the new set
+    set_data = {
         "set_id": set_id,
         "set_name": set_name,
         "set_theme": set_theme,
         "set_year": set_year,
         "instruction_book_number": instruction_book_number,
         "instruction_book_count": instruction_book_count,
-        "set_qty": set_qty,
         "parts_qty": parts_qty,
-        "part_out": part_out == "yes",
-        "part_out_info": part_out_info,
-        "created_at": datetime.now().isoformat(),
-        "updated_at": datetime.now().isoformat()
+        "set_qty": set_qty
     }
-
-    sets.append(new_set)
-    save_sets(sets)
-    cprint(f"Set {set_id} ({set_name}) added successfully.", Colors.OKGREEN)
-    input("Press Enter to continue...")
+    if parted_out:
+        set_data["part_out"] = True
+    save_sets(sets + [set_data])
+    cprint(f"Set {set_id} added successfully.", Colors.OKGREEN)
 
 def edit_set():
     """Edit an existing Lego set."""
     clear_screen()
     cprint("===== Edit Lego Set =====", Colors.HEADER)
-    
-    set_id = input("Enter Set ID to edit: ").strip()
-    
     sets = load_sets()
-    set_index = None
-    
-    for i, s in enumerate(sets):
+    set_id = input("Enter Set ID to edit: ").strip()
+    set_to_edit = None
+    for s in sets:
         if s["set_id"] == set_id:
-            set_index = i
+            set_to_edit = s
             break
-    
-    if set_index is None:
+    if not set_to_edit:
         cprint(f"Set with ID {set_id} not found.", Colors.FAIL)
         time.sleep(1.5)
         return
-    
-    s = sets[set_index]
-    print(f"\nEditing Set: {s['set_name']} (ID: {s['set_id']})")
-    
-    # Display current values and get new values
-    set_name = input(f"Set Name [{s['set_name']}]: ").strip()
-    if set_name:
-        s["set_name"] = set_name
 
-    print(f"Current Theme: {s['set_theme']}")
+    cprint(f"Editing Set: {set_to_edit['set_name']} ({set_to_edit['set_id']})", Colors.OKCYAN)
+    # Edit fields
+    set_name = input(f"Set Name [{set_to_edit['set_name']}]: ").strip() or set_to_edit['set_name']
     theme, subtheme = pick_theme()
     if subtheme:
-        s["set_theme"] = f"{theme} - {subtheme}"
+        set_theme = f"{theme} - {subtheme}"
     else:
-        s["set_theme"] = theme
-    
-    set_year = input(f"Set Year [{s['set_year']}]: ").strip()
-    if set_year:
-        s["set_year"] = set_year
-    
-    instruction_book_number = input(f"Lego Set Instruction Book Number [{s['instruction_book_number']}]: ").strip()
-    if instruction_book_number:
-        s["instruction_book_number"] = instruction_book_number
-    
-    instruction_book_count = input(f"How many instruction books [{s['instruction_book_count']}]: ").strip()
-    if instruction_book_count:
+        set_theme = theme
+    if not set_theme:
+        set_theme = set_to_edit['set_theme']
+    set_year = input(f"Set Year [{set_to_edit['set_year']}]: ").strip() or set_to_edit['set_year']
+    instruction_book_number = input(f"Lego Set Instruction Book Number [{set_to_edit.get('instruction_book_number','')}]: ").strip() or set_to_edit.get('instruction_book_number','')
+    while True:
         try:
-            s["instruction_book_count"] = int(instruction_book_count)
+            instruction_book_count = input(f"How many instruction books [{set_to_edit.get('instruction_book_count',0)}]: ").strip()
+            instruction_book_count = int(instruction_book_count) if instruction_book_count else set_to_edit.get('instruction_book_count',0)
+            if instruction_book_count < 0:
+                raise ValueError
+            break
         except ValueError:
-            cprint("Invalid number. Keeping previous value.", Colors.WARNING)
-    
-    set_qty = input(f"How many of the set do I have [{s['set_qty']}]: ").strip()
-    if set_qty:
+            cprint("Please enter a valid number.", Colors.FAIL)
+    while True:
         try:
-            s["set_qty"] = int(set_qty)
+            parts_qty = input(f"Qty of Parts in the set [{set_to_edit.get('parts_qty',0)}]: ").strip()
+            parts_qty = int(parts_qty) if parts_qty else set_to_edit.get('parts_qty',0)
+            if parts_qty < 0:
+                raise ValueError
+            break
         except ValueError:
-            cprint("Invalid number. Keeping previous value.", Colors.WARNING)
-    
-    parts_qty = input(f"Qty of Parts in the set [{s['parts_qty']}]: ").strip()
-    if parts_qty:
+            cprint("Please enter a valid number.", Colors.FAIL)
+    while True:
         try:
-            s["parts_qty"] = int(parts_qty)
+            set_qty = input(f"How many of the set do I have [{set_to_edit.get('set_qty',0)}]: ").strip()
+            set_qty = int(set_qty) if set_qty else set_to_edit.get('set_qty',0)
+            if set_qty < 0:
+                raise ValueError
+            break
         except ValueError:
-            cprint("Invalid number. Keeping previous value.", Colors.WARNING)
-    
-    part_out = input(f"Have you parted out this set and kept only the missing parts? (yes/no) [{'yes' if s.get('part_out') else 'no'}]: ").strip().lower()
-    if part_out:
-        s["part_out"] = part_out == "yes"
-        if s["part_out"]:
-            part_out_info = s.get("part_out_info", {})
-            total_parts_counted = input(f"Total Parts Counted [{part_out_info.get('total_parts_counted', '')}]: ").strip()
-            if total_parts_counted:
-                try:
-                    part_out_info["total_parts_counted"] = int(total_parts_counted)
-                except ValueError:
-                    cprint("Invalid number. Keeping previous value.", Colors.WARNING)
-            parts_missing = input(f"Parts Missing [{part_out_info.get('parts_missing', '')}]: ").strip()
-            if parts_missing:
-                try:
-                    part_out_info["parts_missing"] = int(parts_missing)
-                except ValueError:
-                    cprint("Invalid number. Keeping previous value.", Colors.WARNING)
-            cost_bricklink = input(f"Cost of parts on Bricklink - If Missing [{part_out_info.get('cost_bricklink', '')}]: ").strip()
-            if cost_bricklink:
-                part_out_info["cost_bricklink"] = cost_bricklink
-            cost_lego = input(f"Cost of parts on Lego - If Missing [{part_out_info.get('cost_lego', '')}]: ").strip()
-            if cost_lego:
-                part_out_info["cost_lego"] = cost_lego
-            s["part_out_info"] = part_out_info
-        else:
-            s["part_out_info"] = {}
-    s["updated_at"] = datetime.now().isoformat()
+            cprint("Please enter a valid number.", Colors.FAIL)
+    # Update the set
+    set_to_edit['set_name'] = set_name
+    set_to_edit['set_theme'] = set_theme
+    set_to_edit['set_year'] = set_year
+    set_to_edit['instruction_book_number'] = instruction_book_number
+    set_to_edit['instruction_book_count'] = instruction_book_count
+    set_to_edit['parts_qty'] = parts_qty
+    set_to_edit['set_qty'] = set_qty
     save_sets(sets)
-    
     cprint(f"Set {set_id} updated successfully.", Colors.OKGREEN)
-    input("Press Enter to continue...")
 
 def search_sets():
     """Search for Lego sets with paging, refresh, and summary."""
@@ -1052,6 +951,89 @@ def export_sets():
     cprint(f"\nExport completed successfully to {export_path}", Colors.OKGREEN)
     input("Press Enter to continue...")
 
+def import_sets(current_user):
+    """Import sets from a JSON file. Only admins can import directly. Users need admin authorization."""
+    clear_screen()
+    cprint("===== Import Lego Sets =====", Colors.HEADER)
+    if current_user["role"] != "admin":
+        cprint("Admin authorization required to import sets.", Colors.WARNING)
+        users = load_users()
+        admin_username = input("Admin Username or UserID: ").strip()
+        admin_user = users.get(admin_username)
+        if not admin_user:
+            admin_uname, admin_user = get_user_by_id(users, admin_username)
+        if not admin_user or admin_user.get("role") != "admin":
+            cprint("Authorization failed: Not a valid admin account.", Colors.FAIL)
+            time.sleep(1.5)
+            return
+        admin_pass = getpass.getpass("Admin Password: ")
+        if admin_user["password"] != hash_password(admin_pass):
+            cprint("Authorization failed: Incorrect password.", Colors.FAIL)
+            time.sleep(1.5)
+            return
+
+    # Auto-detect .json files in current directory and config dir
+    search_dirs = [os.getcwd(), os.path.expanduser("~/.kc-sets")]
+    found_files = []
+    for d in search_dirs:
+        for f in os.listdir(d):
+            if f.endswith(".json"):
+                full_path = os.path.join(d, f)
+                if os.path.isfile(full_path):
+                    found_files.append(full_path)
+    found_files = sorted(list(set(found_files)))  # Remove duplicates
+
+    if found_files:
+        cprint("Found the following .json files:", Colors.OKCYAN)
+        for idx, f in enumerate(found_files, 1):
+            print(f"{idx}. {f}")
+        print("0. Enter a custom path")
+        try:
+            choice = int(input("Select a file to import (number): ").strip())
+        except ValueError:
+            cprint("Invalid input.", Colors.FAIL)
+            time.sleep(1.5)
+            return
+        if choice == 0:
+            filename = input("Enter the path to the JSON file to import: ").strip()
+        elif 1 <= choice <= len(found_files):
+            filename = found_files[choice - 1]
+        else:
+            cprint("Invalid selection.", Colors.FAIL)
+            time.sleep(1.5)
+            return
+    else:
+        filename = input("No .json files found. Enter the path to the JSON file to import: ").strip()
+
+    if not filename or not os.path.isfile(filename):
+        cprint("File not found.", Colors.FAIL)
+        time.sleep(1.5)
+        return
+
+    cprint(f"You selected: {filename}", Colors.OKCYAN)
+    confirm = input("Is this the correct file to import? (y/n): ").strip().lower()
+    if confirm != "y":
+        cprint("Import cancelled.", Colors.WARNING)
+        time.sleep(1.5)
+        return
+
+    try:
+        with open(filename, "r") as f:
+            imported_sets = json.load(f)
+        if not isinstance(imported_sets, list):
+            cprint("Invalid file format. Must be a list of sets.", Colors.FAIL)
+            time.sleep(1.5)
+            return
+        sets = load_sets()
+        existing_ids = {s["set_id"] for s in sets}
+        new_sets = [s for s in imported_sets if s.get("set_id") not in existing_ids]
+        sets.extend(new_sets)
+        save_sets(sets)
+        cprint(f"Imported {len(new_sets)} new sets from {filename}.", Colors.OKGREEN)
+    except Exception as e:
+        cprint(f"Import failed: {e}", Colors.FAIL)
+    input("Press Enter to continue...")
+
 def admin_settings_menu():
     global INACTIVITY_TIMEOUT
     while True:
@@ -1146,7 +1128,7 @@ def main_menu(current_user):
             user_data["role"] == current_user["role"]):
             current_username = username
             break
-            
+
     while True:
         clear_screen()
         cprint(f"===== KC-Sets - Logged in as {current_user['first_name']} {current_user['last_name']} ({current_user['role']}) =====", Colors.OKCYAN)
@@ -1154,19 +1136,20 @@ def main_menu(current_user):
         print("2. Edit Lego Set")
         print("3. Search Lego Sets")
         print("4. Export Sets")
-        
+        print("5. Import Sets")
+
         if current_user["role"] == "admin":
-            print("5. User Management")
-            print("6. Remove Lego Set (Admin approval required)")
-            print("7. Logout")
-            print("8. Exit")
+            print("6. User Management")
+            print("7. Remove Lego Set (Admin approval required)")
+            print("8. Sign Out")
+            print("9. Exit")
         else:
-            print("5. Remove Lego Part (Admin approval required)")  # Only standard users see this
-            print("6. Logout")
-            print("7. Exit")
-        
+            print("6. Remove Lego Part (Admin approval required)")
+            print("7. Sign Out")
+            print("8. Exit")
+
         choice = input_with_timeout("\nEnter your choice: ")
-        
+
         if current_user["role"] == "admin":
             if choice == "1":
                 add_set()
@@ -1175,17 +1158,19 @@ def main_menu(current_user):
             elif choice == "3":
                 search_sets()
             elif choice == "4":
-                export_sets()                                                                                                                                                           
+                export_sets()
             elif choice == "5":
-                user_management_menu(current_user, current_username)
+                import_sets(current_user)
             elif choice == "6":
-                remove_set(current_user)
+                user_management_menu(current_user, current_username)
             elif choice == "7":
-                cprint("Logging out...", Colors.WARNING)
+                remove_set(current_user)
+            elif choice == "8":
+                cprint("Signing out...", Colors.WARNING)
                 time.sleep(1)
                 return True
-            elif choice == "8":
-                cprint("Exiting KC-Parts. Goodbye!", Colors.OKGREEN)
+            elif choice == "9":
+                cprint("Exiting KC-Sets. Goodbye!", Colors.OKGREEN)
                 return False
             else:
                 cprint("Invalid choice. Please try again.", Colors.WARNING)
@@ -1200,13 +1185,15 @@ def main_menu(current_user):
             elif choice == "4":
                 export_sets()
             elif choice == "5":
-                remove_set(current_user)  # Only standard users can request removal
+                import_sets(current_user)
             elif choice == "6":
-                cprint("Logging out...", Colors.WARNING)
+                remove_set(current_user)
+            elif choice == "7":
+                cprint("Signing out...", Colors.WARNING)
                 time.sleep(1)
                 return True
-            elif choice == "7":
-                cprint("Exiting KC-Set. Goodbye!", Colors.OKGREEN)
+            elif choice == "8":
+                cprint("Exiting KC-Sets. Goodbye!", Colors.OKGREEN)
                 return False
             else:
                 cprint("Invalid choice. Please try again.", Colors.WARNING)
@@ -1292,10 +1279,10 @@ def pick_theme(themes=THEMES):
         except ValueError:
             continue
 if __name__ == "__main__":
-    user = login()
-    if user == "__EXIT__" or user is None:
-        sys.exit(0)
     while True:
+        user = login()
+        if user == "__EXIT__" or user is None:
+            sys.exit(0)
         result = main_menu(user)
         if result is False:
             break
