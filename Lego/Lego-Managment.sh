@@ -1,5 +1,5 @@
-cc/cccc#!/usr/bin/env bash
-TODO: NEED TO FIX THE SCRIPTS DUE TO ERROS
+#!/usr/bin/env bash
+# TODO: NEED TO FIX THE SCRIPTS DUE TO ERROS
 # Paths to your scripts
 PARTS_SCRIPT="$HOME/Lego/Lego-Magement-Screen/Personal-Collection/kc-parts/main.sh"
 SETS_SCRIPT="$HOME/Lego/Lego-Magement-Screen/Personal-Collection/kc-sets/main.sh"
