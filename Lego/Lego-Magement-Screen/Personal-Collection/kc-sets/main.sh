@@ -9,6 +9,8 @@ from datetime import datetime
 import sys
 import random
 import signal
+import urllib.request
+import urllib.error
 
 INACTIVITY_TIMEOUT = 180  # Default inactivity timeout in seconds
 ### Adding Themes
@@ -578,33 +580,87 @@ def reset_user_password(admin_user, current_username):
     cprint(f"Password for '{uname}' reset to default ('12345').", Colors.OKGREEN)
     input("Press Enter to continue...")
 
+def load_api_key():
+    """Load Rebrickable API key from .env file."""
+    env_path = os.path.expanduser("~/Lego/.env")
+    if not os.path.exists(env_path):
+        return None
+    with open(env_path, 'r') as f:
+        for line in f:
+            if line.strip() and not line.startswith('#'):
+                key, value = line.strip().split('=', 1)
+                if key == 'REBRICKABLE_API_KEY':
+                    return value
+    return None
+
+def get_set_details_from_api(set_num, api_key):
+    """Fetch set details from Rebrickable API."""
+    if not api_key:
+        return None
+    
+    url = f"https://rebrickable.com/api/v3/lego/sets/{set_num}/"
+    req = urllib.request.Request(url)
+    req.add_header("Authorization", f"key {api_key}")
+    
+    try:
+        with urllib.request.urlopen(req) as response:
+            if response.status == 200:
+                set_details = json.loads(response.read().decode())
+                set_details.pop('set_img_url', None)
+                set_details.pop('set_url', None)
+                return set_details
+    except (urllib.error.HTTPError, urllib.error.URLError):
+        return None
+    return None
+
 def add_set():
-    """Add a new Lego set, with optional lookup for auto-fill."""
+    """Add a new Lego set, with optional lookup for auto-fill from Rebrickable API."""
     clear_screen()
     cprint("===== Add Lego Set =====", Colors.HEADER)
 
     sets = load_sets()
+    api_key = load_api_key()
+    api_data = None
 
     # Prompt for Set ID
-    set_id = input("Set ID (Required): ").strip()
+    set_id = input("Set ID (e.g., 75192-1): ").strip()
     if not set_id:
         cprint("Set ID is required.", Colors.FAIL)
         time.sleep(1.5)
         return
+    
     for s in sets:
         if s["set_id"] == set_id:
             cprint(f"Set with ID {set_id} already exists. Use Edit instead.", Colors.WARNING)
             time.sleep(1.5)
             return
 
+    # API Lookup
+    if api_key:
+        cprint("Checking Rebrickable for set details...", Colors.OKBLUE)
+        api_data = get_set_details_from_api(set_id, api_key)
+        if api_data:
+            cprint("✓ Details found on Rebrickable!", Colors.OKGREEN)
+        else:
+            cprint("✗ No details found on Rebrickable, proceeding with manual entry.", Colors.WARNING)
+    else:
+        cprint("Rebrickable API key not configured, proceeding with manual entry.", Colors.WARNING)
+
+    # Pre-fill data from API if available
+    default_name = api_data.get('name', '') if api_data else ''
+    default_year = str(api_data.get('year', '')) if api_data else ''
+    default_parts = str(api_data.get('num_parts', '')) if api_data else ''
+    # Rebrickable API themes might not map 1:1, so we let the user pick
+    
     # Prompt for Set Name
-    set_name = input("Set Name (Required): ").strip()
+    set_name = input(f"Set Name [{default_name}]: ").strip() or default_name
     if not set_name:
         cprint("Set Name is required.", Colors.FAIL)
         time.sleep(1.5)
         return
 
     # Theme selection
+    cprint("Now, let's select a theme for organizational purposes.", Colors.OKCYAN)
     theme, subtheme = pick_theme()
     if subtheme:
         set_theme = f"{theme} - {subtheme}"
@@ -615,7 +671,7 @@ def add_set():
         time.sleep(1.5)
         return
 
-    set_year = input("Set Year (Required): ").strip()
+    set_year = input(f"Set Year [{default_year}]: ").strip() or default_year
     if not set_year:
         cprint("Set Year is required.", Colors.FAIL)
         time.sleep(1.5)
@@ -625,42 +681,41 @@ def add_set():
 
     while True:
         try:
-            instruction_book_count = int(input("How many instruction books (Required): ").strip())
+            instruction_book_count_str = input("How many instruction books (Required): ").strip()
+            instruction_book_count = int(instruction_book_count_str)
             if instruction_book_count < 0:
                 raise ValueError
             break
         except ValueError:
-            cprint("Please enter a valid number.", Colors.FAIL)
+            cprint("Please enter a valid non-negative number.", Colors.FAIL)
 
     while True:
         try:
-            parts_qty = input("Qty of Parts in the set (Required): ").strip()
-            parts_qty = int(parts_qty)
+            parts_qty_str = input(f"Qty of Parts in the set [{default_parts}]: ").strip() or default_parts
+            parts_qty = int(parts_qty_str)
             if parts_qty < 0:
                 raise ValueError
             break
         except ValueError:
-            cprint("Please enter a valid number.", Colors.FAIL)
-
+            cprint("Please enter a valid non-negative number.", Colors.FAIL)
+    
     while True:
         try:
-            set_qty = int(input("How many of the set do I have (Required): ").strip())
+            set_qty_str = input("How many of the set do I have (Required): ").strip()
+            set_qty = int(set_qty_str)
             if set_qty < 0:
                 raise ValueError
             break
         except ValueError:
-            cprint("Please enter a valid number.", Colors.FAIL)
+            cprint("Please enter a valid non-negative number.", Colors.FAIL)
 
-    # Ask if the set is parted out
     parted_out = None
-    while True:
+    while parted_out is None:
         parted_prompt = input("Is this set parted out? (y/n): ").strip().lower()
         if parted_prompt in ("y", "yes"):
             parted_out = True
-            break
         elif parted_prompt in ("n", "no"):
             parted_out = False
-            break
         else:
             cprint("Please enter 'y' or 'n'.", Colors.WARNING)
 
@@ -673,12 +728,21 @@ def add_set():
         "instruction_book_number": instruction_book_number,
         "instruction_book_count": instruction_book_count,
         "parts_qty": parts_qty,
-        "set_qty": set_qty
+        "set_qty": set_qty,
+        "part_out": parted_out
     }
-    if parted_out:
-        set_data["part_out"] = True
+    if api_data and 'theme_id' in api_data:
+        set_data['theme_id'] = api_data['theme_id']
+
+    
+    # Use UTC time for consistency
+    now_utc = datetime.utcnow().isoformat()
+    set_data['created_at'] = now_utc
+    set_data['updated_at'] = now_utc
+
     save_sets(sets + [set_data])
     cprint(f"Set {set_id} added successfully.", Colors.OKGREEN)
+    input("Press Enter to continue...")
 
 def edit_set():
     """Edit an existing Lego set."""
@@ -743,6 +807,9 @@ def edit_set():
     set_to_edit['instruction_book_count'] = instruction_book_count
     set_to_edit['parts_qty'] = parts_qty
     set_to_edit['set_qty'] = set_qty
+    # Preserve theme_id if it exists
+    if 'theme_id' in s:
+        set_to_edit['theme_id'] = s['theme_id']
     save_sets(sets)
     cprint(f"Set {set_id} updated successfully.", Colors.OKGREEN)
 
@@ -801,16 +868,17 @@ def search_sets():
                 return
             else:
                 cprint(f"Found {len(results)} set(s): (Page {page+1}/{total_pages})", Colors.OKGREEN)
-                print("\n{:<12} {:<30} {:<20} {:<6} {:<8} {:<8} {:<8} {:<8}".format(
-                    "Set ID", "Set Name", "Theme", "Year", "Books", "Qty", "Parts", "Parted?"))
-                print("-" * 110)
+                print("\n{:<12} {:<30} {:<20} {:<8} {:<6} {:<8} {:<8} {:<8} {:<8}".format(
+                    "Set ID", "Set Name", "Theme", "Theme ID", "Year", "Books", "Qty", "Parts", "Parted?"))
+                print("-" * 118)
                 start = page * page_size
                 end = start + page_size
                 for s in results[start:end]:
-                    print("{:<12} {:<30} {:<20} {:<6} {:<8} {:<8} {:<8} {:<8}".format(
+                    print("{:<12} {:<30} {:<20} {:<8} {:<6} {:<8} {:<8} {:<8} {:<8}".format(
                         s["set_id"],
                         s["set_name"][:30],
                         s["set_theme"][:20],
+                        s.get("theme_id", ""),
                         s["set_year"],
                         s["instruction_book_count"],
                         s["set_qty"],
@@ -867,6 +935,8 @@ def remove_set(current_user):
     print(f"Instruction Book Count: {set_to_remove['instruction_book_count']}")
     print(f"Set Qty: {set_to_remove['set_qty']}")
     print(f"Parts Qty: {set_to_remove['parts_qty']}")
+    if 'theme_id' in set_to_remove:
+        print(f"Theme ID: {set_to_remove['theme_id']}")
     print(f"Parted Out: {'Yes' if set_to_remove.get('part_out') else 'No'}")
     if set_to_remove.get('part_out'):
         info = set_to_remove.get('part_out_info', {})
@@ -928,14 +998,15 @@ def export_sets():
         export_path = os.path.join(os.getcwd(), f"{filename}.txt")
         with open(export_path, 'w') as f:
             f.write("KC-Sets Export - {}\n".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
-            f.write("\n{:<12} {:<30} {:<20} {:<6} {:<8} {:<8} {:<8} {:<8}\n".format(
-                "Set ID", "Set Name", "Theme", "Year", "Books", "Qty", "Parts", "Parted?"))
-            f.write("-" * 110 + "\n")
+            f.write("\n{:<12} {:<30} {:<20} {:<8} {:<6} {:<8} {:<8} {:<8} {:<8}\n".format(
+                "Set ID", "Set Name", "Theme", "Theme ID", "Year", "Books", "Qty", "Parts", "Parted?"))
+            f.write("-" * 118 + "\n")
             for s in sets:
-                f.write("{:<12} {:<30} {:<20} {:<6} {:<8} {:<8} {:<8} {:<8}\n".format(
+                f.write("{:<12} {:<30} {:<20} {:<8} {:<6} {:<8} {:<8} {:<8} {:<8}\n".format(
                     s["set_id"],
                     s["set_name"][:30],
                     s["set_theme"][:20],
+                    s.get("theme_id", ""),
                     s["set_year"],
                     s["instruction_book_count"],
                     s["set_qty"],

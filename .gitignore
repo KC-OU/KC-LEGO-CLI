@@ -1,57 +1,22 @@
+# Environment files
+.env
 
-
-
-# files exclude
-README - Notes-Writeup.md
-
-
-
-
-# Byte-compiled / cache files
+# Python
 __pycache__/
-*.py[cod]
-*.so
-.png
-.jpg
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
 
-# C/C++ object files and binaries
-*.o
-*.out
-*.a
-*.so
-*.exe
+# Project-specific ignores
+Lego/.lego_manager_license_agreed
+*.json~
+*export*.json
+Lego/0.json
+Lego/1.json
 
-# Logs and databases
-*.log
-*.sqlite3
-*.db
-
-# OS generated files
+# OS-specific
 .DS_Store
 Thumbs.db
-
-# IDE/editor files
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Build directories
-build/
-dist/
-*.egg-info/
-
-# Node.js
-node_modules/
-
-# Python virtual environments
-venv/
-.env/
-ENV/
-env/
-
-# Backup files
-*~
-*.bak
-
-# Custom excludes

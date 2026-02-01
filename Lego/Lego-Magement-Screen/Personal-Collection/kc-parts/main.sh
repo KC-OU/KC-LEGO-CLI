@@ -9,7 +9,8 @@ from datetime import datetime
 import sys
 import random
 import signal
-
+import urllib.request
+import urllib.error
 
 PART_CATEGORY_SECTIONS = {
     "General": [
@@ -587,40 +588,87 @@ def user_management_menu(admin_user, current_username):
             cprint("Invalid choice. Please try again.", Colors.WARNING)
             time.sleep(1)
 
+def load_api_key():
+    """Load Rebrickable API key from .env file."""
+    env_path = os.path.expanduser("~/Lego/.env")
+    if not os.path.exists(env_path):
+        return None
+    with open(env_path, 'r') as f:
+        for line in f:
+            if line.strip() and not line.startswith('#'):
+                key, value = line.strip().split('=', 1)
+                if key == 'REBRICKABLE_API_KEY':
+                    return value
+    return None
+
+def get_part_details_from_api(part_num, api_key):
+    """Fetch part details from Rebrickable API."""
+    if not api_key:
+        return None
+    
+    url = f"https://rebrickable.com/api/v3/lego/parts/{part_num}/"
+    req = urllib.request.Request(url)
+    req.add_header("Authorization", f"key {api_key}")
+    
+    try:
+        with urllib.request.urlopen(req) as response:
+            if response.status == 200:
+                part_details = json.loads(response.read().decode())
+                part_details.pop('part_img_url', None)
+                part_details.pop('part_url', None)
+                return part_details
+    except (urllib.error.HTTPError, urllib.error.URLError):
+        return None
+    return None
+
 def add_part():
-    """Add a new Lego part."""
+    """Add a new Lego part, with auto-fill from Rebrickable API."""
     clear_screen()
     cprint("===== Add Lego Part =====", Colors.HEADER)
     
+    api_key = load_api_key()
+    api_data = None
+
     part_id = input("Part ID (Short Code/Design ID) [Required]: ").strip()
     if not part_id:
         cprint("Part ID is required.", Colors.FAIL)
         time.sleep(1.5)
         return
     
-    # Check if the part already exists
     parts = load_parts()
     for part in parts:
         if part["part_id"] == part_id:
             cprint(f"Part with ID {part_id} already exists. Use Edit instead.", Colors.WARNING)
             time.sleep(1.5)
             return
+
+    # API Lookup
+    if api_key:
+        cprint("Checking Rebrickable for part details...", Colors.OKBLUE)
+        api_data = get_part_details_from_api(part_id, api_key)
+        if api_data:
+            cprint("✓ Details found on Rebrickable!", Colors.OKGREEN)
+        else:
+            cprint("✗ No details found on Rebrickable, proceeding with manual entry.", Colors.WARNING)
+    else:
+        cprint("Rebrickable API key not configured, proceeding with manual entry.", Colors.WARNING)
+
+    default_name = api_data.get('name', '') if api_data else ''
     
     long_part_id = input("Long Part ID (Element ID): ").strip()
-    part_name = input("Part Name (excluding color or category) [Required]: ").strip()
+    
+    part_name = input(f"Part Name [{default_name}]: ").strip() or default_name
     if not part_name:
         cprint("Part Name is required.", Colors.FAIL)
         time.sleep(1.5)
         return
 
-    # --- Category picker (was theme picker) ---
-    print("\nSelect Part Category:")
+    cprint("\nSelect Part Category:", Colors.OKCYAN)
     part_category = pick_category_section()
     if not part_category:
         cprint("Part Category is required.", Colors.FAIL)
         time.sleep(1.5)
         return
-    # ------------------------------------------
 
     while True:
         try:
@@ -631,7 +679,7 @@ def add_part():
         except ValueError:
             cprint("Please enter a valid quantity (positive number).", Colors.FAIL)
     
-    print("\nSelect Part Color:")
+    cprint("\nSelect Part Color:", Colors.OKCYAN)
     part_color = pick_color_section()
     if not part_color:
         cprint("Part Color is required.", Colors.FAIL)
@@ -642,12 +690,18 @@ def add_part():
         "part_id": part_id,
         "long_part_id": long_part_id,
         "part_name": part_name,
-        "part_category": part_category,  # <-- Use part_category here
+        "part_category": part_category,
         "part_qty": part_qty,
         "part_color": part_color,
         "created_at": datetime.now().isoformat(),
         "updated_at": datetime.now().isoformat()
     }
+    if api_data:
+        if 'part_num' in api_data:
+            new_part['part_num'] = api_data['part_num']
+        if 'part_cat_id' in api_data:
+            new_part['part_cat_id'] = api_data['part_cat_id']
+
     
     parts.append(new_part)
     save_parts(parts)
@@ -709,6 +763,11 @@ def edit_part():
         part["part_color"] = pick_color_section()
     
     part["updated_at"] = datetime.now().isoformat()
+    # Preserve part_num and part_cat_id if they exist
+    if 'part_num' in part:
+        part['part_num'] = part['part_num']
+    if 'part_cat_id' in part:
+        part['part_cat_id'] = part['part_cat_id']
     save_parts(parts)
     
     cprint(f"Part {part_id} updated successfully.", Colors.OKGREEN)
@@ -737,7 +796,11 @@ def remove_part(current_user):
 
     print(f"\nPart Details:")
     print(f"Name: {part_to_remove['part_name']}")
+    if 'part_num' in part_to_remove:
+        print(f"Part Number: {part_to_remove['part_num']}")
     print(f"Category: {part_to_remove['part_category']}")
+    if 'part_cat_id' in part_to_remove:
+        print(f"Category ID: {part_to_remove['part_cat_id']}")
     print(f"Color: {part_to_remove['part_color']}")
     print(f"Quantity: {part_to_remove['part_qty']}")
 
@@ -817,13 +880,14 @@ def search_parts():
         end = start + page_size
         page_results = results[start:end]
 
-        print("{:<10} {:<10} {:<30} {:<8} {:<15} {:<15}".format(
-            "Part ID", "Long ID", "Name", "Qty", "Category", "Color"))
-        print("-" * 90)
+        print("{:<10} {:<10} {:<10} {:<30} {:<8} {:<15} {:<15}".format(
+            "Part ID", "Part Num", "Category ID", "Name", "Qty", "Category", "Color"))
+        print("-" * 110)
         for part in page_results:
-            print("{:<10} {:<10} {:<30} {:<8} {:<15} {:<15}".format(
+            print("{:<10} {:<10} {:<10} {:<30} {:<8} {:<15} {:<15}".format(
                 part["part_id"],
-                part["long_part_id"],
+                part.get("part_num", ""),
+                part.get("part_cat_id", ""),
                 part["part_name"][:30],
                 part["part_qty"],
                 part["part_category"][:15],
@@ -926,6 +990,48 @@ def pick_color_section():
             return colors[int(color_choice) - 1]
         else:
             cprint("Invalid color. Try again.", Colors.FAIL)
+
+def export_parts():
+    """Export parts to a file."""
+    clear_screen()
+    cprint("===== Export Lego Parts =====", Colors.HEADER)
+    
+    format_choice = ""
+    while format_choice not in ["1", "2"]:
+        print("Select export format:")
+        print("1. JSON")
+        print("2. TXT")
+        format_choice = input("Choice (1-2): ").strip()
+    
+    filename = input("Enter filename (without extension): ").strip()
+    if not filename:
+        filename = f"kc_parts_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    
+    parts = load_parts()
+    
+    if format_choice == "1":  # JSON
+        export_path = os.path.join(os.getcwd(), f"{filename}.json")
+        with open(export_path, 'w') as f:
+            json.dump(parts, f, indent=4)
+    else:  # TXT
+        export_path = os.path.join(os.getcwd(), f"{filename}.txt")
+        with open(export_path, 'w') as f:
+            f.write("KC-Parts Export - {}\n".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+            f.write("\n{:<10} {:<10} {:<10} {:<30} {:<8} {:<15} {:<15}\n".format(
+                "Part ID", "Part Num", "Category ID", "Name", "Qty", "Category", "Color"))
+            f.write("-" * 110 + "\n")
+            for part in parts:
+                f.write("{:<10} {:<10} {:<10} {:<30} {:<8} {:<15} {:<15}\n".format(
+                    part["part_id"],
+                    part.get("part_num", ""),
+                    part.get("part_cat_id", ""),
+                    part["part_name"][:30],
+                    part["part_qty"],
+                    part["part_category"][:15],
+                    part["part_color"][:15]
+                ))
+    cprint(f"\nExport completed successfully to {export_path}", Colors.OKGREEN)
+    input("Press Enter to continue...")
 
 def main_menu(current_user):
     """Display the main menu and handle user choices."""

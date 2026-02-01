@@ -9,6 +9,8 @@ from datetime import datetime
 import sys
 import random
 import signal
+import urllib.request
+import urllib.error
 
 INACTIVITY_TIMEOUT = 180  # Default inactivity timeout in seconds
 ### Adding Themes
@@ -140,7 +142,7 @@ def cprint(text, color=Colors.ENDC, end='\n'):
 # Define the data files
 USERS_FILE = "users.json"
 SETS_FILE = "sets.json"
-CONFIG_DIR = os.path.expanduser("~/.kc-nonretried-sets")  # Changed directory name
+CONFIG_DIR = os.path.expanduser("~/.kc-retired-sets")  # Corrected directory name
 
 # Ensure the config directory exists
 if not os.path.exists(CONFIG_DIR):
@@ -576,10 +578,46 @@ def reset_user_password(admin_user, current_username):
     cprint(f"Password for '{uname}' reset to default ('12345').", Colors.OKGREEN)
     input("Press Enter to continue...")
 
+def load_api_key():
+    """Load Rebrickable API key from .env file."""
+    env_path = os.path.expanduser("~/Lego/.env")
+    if not os.path.exists(env_path):
+        return None
+    with open(env_path, 'r') as f:
+        for line in f:
+            if line.strip() and not line.startswith('#'):
+                key, value = line.strip().split('=', 1)
+                if key == 'REBRICKABLE_API_KEY':
+                    return value
+    return None
+
+def get_set_details_from_api(set_num, api_key):
+    """Fetch set details from Rebrickable API."""
+    if not api_key:
+        return None
+    
+    url = f"https://rebrickable.com/api/v3/lego/sets/{set_num}/"
+    req = urllib.request.Request(url)
+    req.add_header("Authorization", f"key {api_key}")
+    
+    try:
+        with urllib.request.urlopen(req) as response:
+            if response.status == 200:
+                set_details = json.loads(response.read().decode())
+                set_details.pop('set_img_url', None)
+                set_details.pop('set_url', None)
+                return set_details
+    except (urllib.error.HTTPError, urllib.error.URLError):
+        return None
+    return None
+
 def add_set():
-    """Add a new Retiring or Retired Lego set."""
+    """Add a new Retiring or Retired Lego set, with auto-fill from API."""
     clear_screen()
     cprint("===== Add Retiring/Retired Lego Set =====", Colors.HEADER)
+    
+    api_key = load_api_key()
+    api_data = None
 
     set_id = input("Set ID (Required): ").strip()
     if not set_id:
@@ -594,7 +632,23 @@ def add_set():
             time.sleep(1.5)
             return
 
-    set_name = input("Set Name (Required): ").strip()
+    # API Lookup
+    if api_key:
+        cprint("Checking Rebrickable for set details...", Colors.OKBLUE)
+        api_data = get_set_details_from_api(set_id, api_key)
+        if api_data:
+            cprint("✓ Details found on Rebrickable!", Colors.OKGREEN)
+        else:
+            cprint("✗ No details found on Rebrickable, proceeding with manual entry.", Colors.WARNING)
+    else:
+        cprint("Rebrickable API key not configured, proceeding with manual entry.", Colors.WARNING)
+
+    # Pre-fill data from API if available
+    default_name = api_data.get('name', '') if api_data else ''
+    default_year = str(api_data.get('year', '')) if api_data else ''
+    default_parts = str(api_data.get('num_parts', '')) if api_data else ''
+
+    set_name = input(f"Set Name [{default_name}]: ").strip() or default_name
     if not set_name:
         cprint("Set Name is required.", Colors.FAIL)
         time.sleep(1.5)
@@ -607,107 +661,71 @@ def add_set():
         time.sleep(1.5)
         return
 
-    set_year = input("Set Year (Required): ").strip()
+    set_year = input(f"Set Year [{default_year}]: ").strip() or default_year
     if not set_year:
         cprint("Set Year is required.", Colors.FAIL)
         time.sleep(1.5)
         return
 
-    # Qty of Parts in the set (Optional)
-    parts_qty = input("Qty of Parts in the set (Optional): ").strip()
+    parts_qty_str = input(f"Qty of Parts in the set [{default_parts}]: ").strip() or default_parts
     try:
-        parts_qty = int(parts_qty) if parts_qty else None
+        parts_qty = int(parts_qty_str) if parts_qty_str else None
     except ValueError:
-        cprint("Please enter a valid number.", Colors.FAIL)
+        cprint("Please enter a valid number for parts qty.", Colors.FAIL)
         return
 
     # Is the set retired or retiring?
     status = ""
     while status not in ["retired", "retiring"]:
         status = input("Is the set retired or retiring? (retired/retiring): ").strip().lower()
-    set_status = status
+    
+    new_set = {
+        "set_id": set_id,
+        "set_name": set_name,
+        "set_theme": set_theme,
+        "set_year": set_year,
+        "parts_qty": parts_qty,
+        "status": status,
+        "created_at": datetime.now().isoformat(),
+        "updated_at": datetime.now().isoformat()
+    }
+    if api_data and 'theme_id' in api_data:
+        new_set['theme_id'] = api_data['theme_id']
+
 
     # Divergent logic for retired/retiring
-    if set_status == "retired":
-        retired_date = input("When did the set get retired? (Required): ").strip()
-        retired_cost = input("How much is the retired set on Bricklink or eBay? (Optional): ").strip()
-        completed_studio = input("Have you completed this set on Studio? (yes/no): ").strip().lower()
-        studio_reason = ""
-        if completed_studio != "yes":
-            studio_reason = input("Please write a reason: ").strip()
-        created_google_site = input("Have you created a page on Google Site? (yes/no): ").strip().lower()
-        google_site_reason = ""
-        if created_google_site != "yes":
-            google_site_reason = input("Please write a reason: ").strip()
-        created_powerpoint = input("Have you created slides on PowerPoint? (yes/no): ").strip().lower()
-        powerpoint_reason = ""
-        if created_powerpoint != "yes":
-            powerpoint_reason = input("Please write a reason: ").strip()
-        updated_powerbi = input("Have you filled in the forms and updated PowerBi for the PowerPoint? (yes/no): ").strip().lower()
-        powerbi_reason = ""
-        if updated_powerbi != "yes":
-            powerbi_reason = input("Please write a reason: ").strip()
-            cprint("Please fill out this form: https://forms.cloud.microsoft/e/eWZNdZ9viL", Colors.WARNING)
-        new_set = {
-            "set_id": set_id,
-            "set_name": set_name,
-            "set_theme": set_theme,
-            "set_year": set_year,
-            "parts_qty": parts_qty,
-            "status": set_status,
-            "retired_date": retired_date,
-            "retired_cost": retired_cost,
-            "completed_studio": completed_studio,
-            "studio_reason": studio_reason,
-            "created_google_site": created_google_site,
-            "google_site_reason": google_site_reason,
-            "created_powerpoint": created_powerpoint,
-            "powerpoint_reason": powerpoint_reason,
-            "updated_powerbi": updated_powerbi,
-            "powerbi_reason": powerbi_reason,
-            "created_at": datetime.now().isoformat(),
-            "updated_at": datetime.now().isoformat()
-        }
+    if status == "retired":
+        new_set["retired_date"] = input("When did the set get retired? (Required): ").strip()
+        new_set["retired_cost"] = input("How much is the retired set on Bricklink or eBay? (Optional): ").strip()
     else:  # retiring
-        retiring_estimate = input("When is the estimate retired date? (Required): ").strip()
-        current_cost = input("Current cost of the set (Optional): ").strip()
-        completed_studio = input("Have you completed this set on Studio? (yes/no): ").strip().lower()
-        studio_reason = ""
-        if completed_studio != "yes":
-            studio_reason = input("Please write a reason: ").strip()
-        created_google_site = input("Have you created a page on Google Site? (yes/no): ").strip().lower()
-        google_site_reason = ""
-        if created_google_site != "yes":
-            google_site_reason = input("Please write a reason: ").strip()
-        created_powerpoint = input("Have you created slides on PowerPoint? (yes/no): ").strip().lower()
-        powerpoint_reason = ""
-        if created_powerpoint != "yes":
-            powerpoint_reason = input("Please write a reason: ").strip()
-        updated_powerbi = input("Have you filled in the forms and updated PowerBi for the PowerPoint? (yes/no): ").strip().lower()
-        powerbi_reason = ""
-        if updated_powerbi != "yes":
-            powerbi_reason = input("Please write a reason: ").strip()
-            cprint("Please fill out this form: https://forms.cloud.microsoft/e/eWZNdZ9viL", Colors.WARNING)
-        new_set = {
-            "set_id": set_id,
-            "set_name": set_name,
-            "set_theme": set_theme,
-            "set_year": set_year,
-            "parts_qty": parts_qty,
-            "status": set_status,
-            "retiring_estimate": retiring_estimate,
-            "current_cost": current_cost,
-            "completed_studio": completed_studio,
-            "studio_reason": studio_reason,
-            "created_google_site": created_google_site,
-            "google_site_reason": google_site_reason,
-            "created_powerpoint": created_powerpoint,
-            "powerpoint_reason": powerpoint_reason,
-            "updated_powerbi": updated_powerbi,
-            "powerbi_reason": powerbi_reason,
-            "created_at": datetime.now().isoformat(),
-            "updated_at": datetime.now().isoformat()
-        }
+        new_set["retiring_estimate"] = input("When is the estimate retired date? (Required): ").strip()
+        new_set["current_cost"] = input("Current cost of the set (Optional): ").strip()
+
+    # Common questions
+    completed_studio = input("Have you completed this set on Studio? (yes/no): ").strip().lower()
+    new_set["completed_studio"] = completed_studio
+    new_set["studio_reason"] = ""
+    if completed_studio != "yes":
+        new_set["studio_reason"] = input("Please write a reason: ").strip()
+
+    created_google_site = input("Have you created a page on Google Site? (yes/no): ").strip().lower()
+    new_set["created_google_site"] = created_google_site
+    new_set["google_site_reason"] = ""
+    if created_google_site != "yes":
+        new_set["google_site_reason"] = input("Please write a reason: ").strip()
+
+    created_powerpoint = input("Have you created slides on PowerPoint? (yes/no): ").strip().lower()
+    new_set["created_powerpoint"] = created_powerpoint
+    new_set["powerpoint_reason"] = ""
+    if created_powerpoint != "yes":
+        new_set["powerpoint_reason"] = input("Please write a reason: ").strip()
+
+    updated_powerbi = input("Have you filled in the forms and updated PowerBi for the PowerPoint? (yes/no): ").strip().lower()
+    new_set["updated_powerbi"] = updated_powerbi
+    new_set["powerbi_reason"] = ""
+    if updated_powerbi != "yes":
+        new_set["powerbi_reason"] = input("Please write a reason: ").strip()
+        cprint("Please fill out this form: https://forms.cloud.microsoft/e/eWZNdZ9viL", Colors.WARNING)
 
     sets.append(new_set)
     save_sets(sets)
@@ -779,6 +797,9 @@ def edit_set():
         else:
             s["powerbi_reason"] = ""
     s["updated_at"] = datetime.now().isoformat()
+    # Preserve theme_id if it exists
+    if 'theme_id' in s:
+        s['theme_id'] = s['theme_id']
     save_sets(sets)
     cprint(f"Set {set_id} updated successfully.", Colors.OKGREEN)
     input("Press Enter to continue...")
@@ -838,16 +859,17 @@ def search_sets():
                 return
             else:
                 cprint(f"Found {len(results)} set(s): (Page {page+1}/{total_pages})", Colors.OKGREEN)
-                print("\n{:<12} {:<30} {:<20} {:<6} {:<10} {:<15} {:<10} {:<10} {:<10} {:<10}".format(
-                    "Set ID", "Set Name", "Theme", "Year", "Parts Qty", "Cost", "Studio", "GoogleSite", "PPT", "PowerBI"))
-                print("-" * 140)
+                print("\n{:<12} {:<30} {:<20} {:<8} {:<6} {:<10} {:<15} {:<10} {:<10} {:<10}".format(
+                    "Set ID", "Set Name", "Theme", "Theme ID", "Year", "Parts Qty", "Cost", "Studio", "GoogleSite", "PPT", "PowerBI"))
+                print("-" * 148)
                 start = page * page_size
                 end = start + page_size
                 for s in results[start:end]:
-                    print("{:<12} {:<30} {:<20} {:<6} {:<10} {:<15} {:<10} {:<10} {:<10} {:<10}".format(
+                    print("{:<12} {:<30} {:<20} {:<8} {:<6} {:<10} {:<15} {:<10} {:<10} {:<10}".format(
                         s["set_id"],
                         s["set_name"][:30],
                         s["set_theme"][:20],
+                        s.get("theme_id", ""),
                         s["set_year"],
                         s.get("parts_qty", ""),
                         s.get("cost_new_used", ""),
@@ -902,6 +924,8 @@ def remove_set(current_user):
     print(f"\nSet Details:")
     print(f"Set Name: {set_to_remove['set_name']}")
     print(f"Theme: {set_to_remove['set_theme']}")
+    if 'theme_id' in set_to_remove:
+        print(f"Theme ID: {set_to_remove['theme_id']}")
     print(f"Year: {set_to_remove['set_year']}")
     print(f"Qty of Parts in the set: {set_to_remove.get('parts_qty', '')}")
     print(f"Cost New or Used: {set_to_remove.get('cost_new_used', '')}")
@@ -963,14 +987,15 @@ def export_sets():
         export_path = os.path.join(os.getcwd(), f"{filename}.txt")
         with open(export_path, 'w') as f:
             f.write("KC-Sets Export - {}\n".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
-            f.write("\n{:<12} {:<30} {:<20} {:<6} {:<10} {:<15} {:<10} {:<10} {:<10} {:<10}\n".format(
-                "Set ID", "Set Name", "Theme", "Year", "Parts Qty", "Cost", "Studio", "GoogleSite", "PPT", "PowerBI"))
-            f.write("-" * 140 + "\n")
+            f.write("\n{:<12} {:<30} {:<20} {:<8} {:<6} {:<10} {:<15} {:<10} {:<10} {:<10}\n".format(
+                "Set ID", "Set Name", "Theme", "Theme ID", "Year", "Parts Qty", "Cost", "Studio", "GoogleSite", "PPT", "PowerBI"))
+            f.write("-" * 148 + "\n")
             for s in sets:
-                f.write("{:<12} {:<30} {:<20} {:<6} {:<10} {:<15} {:<10} {:<10} {:<10} {:<10}\n".format(
+                f.write("{:<12} {:<30} {:<20} {:<8} {:<6} {:<10} {:<15} {:<10} {:<10} {:<10}\n".format(
                     s["set_id"],
                     s["set_name"][:30],
                     s["set_theme"][:20],
+                    s.get("theme_id", ""),
                     s["set_year"],
                     s.get("parts_qty", ""),
                     s.get("cost_new_used", ""),
