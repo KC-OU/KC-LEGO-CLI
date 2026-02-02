@@ -16,6 +16,19 @@ LegoLookup="$HOME/Lego/Lego-Lookup/lookup-set.sh"
 LegoPartLookup="$HOME/Lego/Lego-Lookup/lookup-part.sh"
 
 
+SETTINGS_FILE="$HOME/.kc-lego-cli.conf"
+
+# Function to load settings
+load_settings() {
+    if [ ! -f "$SETTINGS_FILE" ]; then
+        echo "MODE=full" > "$SETTINGS_FILE"
+    fi
+    # shellcheck source=/dev/null
+    source "$SETTINGS_FILE"
+}
+
+
+
 # Function to center text
 center() {
     local termwidth
@@ -82,7 +95,6 @@ show_license_agreement() {
     done
 }
 
-# Personal Collection submenu
 personal_collection_menu() {
     while true; do
         clear
@@ -130,38 +142,66 @@ lego_management_system_menu() {
         center "      non-personal Lego collection       "
         center "========================================="
         echo
-        center "1. Personal Collection"
-        center "2. Non Retired Lego Sets"
-        center "3. Retired Lego Sets"
-        center "4. Back"
-        center "5. Exit"
-        echo
+        if [ "$MODE" = "full" ]; then
+            center "1. Personal Collection"
+            center "2. Non Retired Lego Sets"
+            center "3. Retired Lego Sets"
+            center "4. Back"
+            center "5. Exit"
+            echo
 
-        read -rp "$(center 'Select an option [1-5]:')" choice
+            read -rp "$(center 'Select an option [1-5]:')" choice
+        else # presentation
+            center "1. Personal Collection"
+            center "2. Back"
+            center "3. Exit"
+            echo
+            read -rp "$(center 'Select an option [1-3]:')" choice
+        fi
 
-        case "$choice" in
-            1)
-                personal_collection_menu
-                ;;
-            2)
-                "$Non_Retired_LEGO_SETS_SCRIPT"
-                ;;
-            3)
-                "$Retired_or_Retiring_LEGO_SETS_SCRIPT"
-                ;;
-            4)
-                break  # Back to startup menu
-                ;;
-            5)
-                center "Goodbye!"
-                sleep 1
-                exit 0
-                ;;
-            *)
-                center "Invalid option. Please try again."
-                sleep 1
-                ;;
-        esac
+        if [ "$MODE" = "full" ]; then
+            case "$choice" in
+                1)
+                    personal_collection_menu
+                    ;;
+                2)
+                    "$Non_Retired_LEGO_SETS_SCRIPT"
+                    ;;
+                3)
+                    "$Retired_or_Retiring_LEGO_SETS_SCRIPT"
+                    ;;
+                4)
+                    break  # Back to startup menu
+                    ;;
+                5)
+                    center "Goodbye!"
+                    sleep 1
+                    exit 0
+                    ;;
+                *)
+                    center "Invalid option. Please try again."
+                    sleep 1
+                    ;;
+            esac
+        else # presentation
+             case "$choice" in
+                1)
+                    personal_collection_menu
+                    ;;
+                2)
+                    break  # Back to startup menu
+                    ;;
+                3)
+                    center "Goodbye!"
+                    sleep 1
+                    exit 0
+                    ;;
+                *)
+                    center "Invalid option. Please try again."
+                    sleep 1
+                    ;;
+            esac
+        fi
     done
 }
 
@@ -205,72 +245,36 @@ lego_lookup_menu() {
     done
 }
 
-# LMS/LL start menu
-startup_menu() {
+settings_menu() {
     while true; do
         clear
         center "========================================="
-        center "         LEGO SYSTEM LAUNCHER            "
+        center "                 SETTINGS                "
         center "========================================="
         echo
-        center "1. Lego Management System"
-        center "2. Lego Lookup"
-        center "3. View License"
-        center "4. Exit"
+        center "Current Mode: $MODE"
         echo
+        center "1. Switch to Full Mode"
+        center "2. Switch to Presentation Mode"
+        center "3. Back to Main Menu"
+        echo
+        read -rp "$(center 'Select an option [1-3]: ')" settings_choice
 
-        read -rp "$(center 'Select an option [1-4]: ')" start_choice
-
-        case "$start_choice" in
+        case "$settings_choice" in
             1)
-                lego_management_system_menu
+                echo "MODE=full" > "$SETTINGS_FILE"
+                load_settings
+                center "Mode switched to Full."
+                sleep 1
                 ;;
             2)
-                lego_lookup_menu
-                ;;
-
-            3)
-                clear
-                center "==============================================="
-                center "This project is licensed under the MIT License."
-                center "You can view the license at:"
-                center "https://opensource.org/license/mit"
-                center "==============================================="
-                center ""
-                center "Full Decription"
-                center "---------------"
-                center "               "
-                center "Copyright <YEAR> <COPYRIGHT HOLDER>"
-                center ""
-                center "Permission is hereby granted, free of charge, to any" 
-                center "person obtaining a copy of this software and associated" 
-                center "documentation files (the \"Software\"), to deal in the"
-                center "Software without restriction, including without limitation" 
-                center "the rights to use, copy, modify, merge, publish, distribute," 
-                center "sublicense, and/or sell copies of the Software, and to permit" 
-                center "persons to whom the Software is furnished to do so, subject"
-                center "to the following conditions:"
-                center "                                                           "
-                center "The above copyright notice and this permission notice shall"
-                center "be included in all copies or substantial portions of the Software."
-                center "                                                                  "
-                center "THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND," 
-                center "EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES"
-                center "OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT." 
-                center "IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM," 
-                center "DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR" 
-                center "OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE"
-                center "OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."
-                center ""
-                center "==========================================================================="
-                echo
-                center "Press Enter to return to the menu."
-                read
-                ;;
-            4)
-                center "Goodbye!"
+                echo "MODE=presentation" > "$SETTINGS_FILE"
+                load_settings
+                center "Mode switched to Presentation."
                 sleep 1
-                exit 0
+                ;;
+            3)
+                break
                 ;;
             *)
                 center "Invalid option. Please try again."
@@ -280,7 +284,101 @@ startup_menu() {
     done
 }
 
+# LMS/LL start menu
+startup_menu() {
+    while true; do
+        clear
+        center "========================================="
+        center "         LEGO SYSTEM LAUNCHER            "
+        center "========================================="
+        echo
+        if [ "$MODE" = "full" ]; then
+            center "1. Lego Management System"
+            center "2. Lego Lookup"
+            center "3. View License"
+            center "4. Settings"
+            center "5. Exit"
+            echo
+            read -rp "$(center 'Select an option [1-5]: ')" start_choice
+
+            case "$start_choice" in
+                1) lego_management_system_menu ;;
+                2) lego_lookup_menu ;;
+                3)
+                    clear
+                    center "==============================================="
+                    center "This project is licensed under the MIT License."
+                    center "You can view the license at:"
+                    center "https://opensource.org/license/mit"
+                    center "==============================================="
+                    center ""
+                    center "Full Decription"
+                    center "---------------"
+                    center "               "
+                    center "Copyright <YEAR> <COPYRIGHT HOLDER>"
+                    center ""
+                    center "Permission is hereby granted, free of charge, to any" 
+                    center "person obtaining a copy of this software and associated" 
+                    center "documentation files (the \"Software\"), to deal in the"
+                    center "Software without restriction, including without limitation" 
+                    center "the rights to use, copy, modify, merge, publish, distribute," 
+                    center "sublicense, and/or sell copies of the Software, and to permit" 
+                    center "persons to whom the Software is furnished to do so, subject"
+                    center "to the following conditions:"
+                    center "                                                           "
+                    center "The above copyright notice and this permission notice shall"
+                    center "be included in all copies or substantial portions of the Software."
+                    center "                                                                  "
+                    center "THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND," 
+                    center "EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES"
+                    center "OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT." 
+                    center "IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM," 
+                    center "DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR" 
+                    center "OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE"
+                    center "OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."
+                    center ""
+                    center "==========================================================================="
+                    echo
+                    center "Press Enter to return to the menu."
+                    read
+                    ;;
+                4) settings_menu ;;
+                5)
+                    center "Goodbye!"
+                    sleep 1
+                    exit 0
+                    ;;
+                *)
+                    center "Invalid option. Please try again."
+                    sleep 1
+                    ;;
+            esac
+        else # presentation
+            center "1. Lego Lookup"
+            center "2. Settings"
+            center "3. Exit"
+            echo
+            read -rp "$(center 'Select an option [1-3]: ')" start_choice
+
+            case "$start_choice" in
+                1) lego_lookup_menu ;;
+                2) settings_menu ;;
+                3)
+                    center "Goodbye!"
+                    sleep 1
+                    exit 0
+                    ;;
+                *)
+                    center "Invalid option. Please try again."
+                    sleep 1
+                    ;;
+            esac
+        fi
+    done
+}
+
 # Show license agreement at the very start
+load_settings
 show_license_agreement
 
 # Start the launcher

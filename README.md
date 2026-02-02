@@ -48,27 +48,27 @@ This project is a powerful, menu-driven system for LEGO enthusiasts to manage th
     -   A dynamic and responsive menu-driven interface created with Bash scripting (`tput`).
     -   Colored output for better readability and user experience.
 
-## Application Tour
+# ## Application Tour
 
-Here is a glimpse into the KC LEGO Management System.
+# Here is a glimpse into the KC LEGO Management System.
 
-**Main Menu**
-*(A brief description of the main entry point of the application.)*
-> ![Main Menu](Lego/screenshots/01-main-menu.png)
+# **Main Menu**
+# *(A brief description of the main entry point of the application.)*
+# > ![Main Menu](Lego/screenshots/01-main-menu.png)
 
-**LEGO Lookup System**
-*(Showcasing the powerful search capabilities for finding sets and parts.)*
-> ![LEGO Lookup](Lego/screenshots/02-lego-lookup.png)
+# * *LEGO Lookup System**
+# *(Showcasing the powerful search capabilities for finding sets and parts.)*
+# > ![LEGO Lookup](Lego/screenshots/02-lego-lookup.png)
 
-**Collection Management**
-*(The main dashboard for one of the collection modules after logging in.)*
-> ![Collection Management](Lego/screenshots/03-collection-management.png)
+# **Collection Management**
+# *(The main dashboard for one of the collection modules after logging in.)*
+# > ![Collection Management](Lego/screenshots/03-collection-management.png)
 
-**User Management (Admin View)**
-*(The menu available to administrators for managing users.)*
-> ![User Management](Lego/screenshots/04-user-management.png)
+# **User Management (Admin View)**
+# *(The menu available to administrators for managing users.)*
+# > ![User Management](Lego/screenshots/04-user-management.png)
 
-***Note:** To add screenshots, place your images in the `Lego/screenshots/` directory and uncomment the Markdown image tags above.*
+# ***Note:** To add screenshots, place your images in the `Lego/screenshots/` directory and uncomment the Markdown image tags above.*
 
 ## User Account Management
 

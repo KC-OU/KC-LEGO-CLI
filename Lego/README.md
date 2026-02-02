@@ -36,6 +36,7 @@ The KC LEGO Management System provides:
 - **Non-Personal Collection Tracking** - Manage wish lists and track retired sets
 - **User Management System** - Multi-user support with role-based access
 - **Interactive Menu Interface** - Easy-to-navigate terminal-based UI
+- **Presentation Mode** - A simplified view for clients or colleagues
 
 ## 🏗️ System Components
 
@@ -182,6 +183,21 @@ bash --version
    - Assign roles (admin/user)
    - Enable/disable accounts
    - Reset passwords
+
+### Presentation Mode
+For a simplified experience when demonstrating the application, you can switch to Presentation Mode.
+
+1.  **Enable Presentation Mode:**
+    -   From the main launcher menu, select "Settings".
+    -   Choose "Switch to Presentation Mode".
+
+2.  **What it Does:**
+    -   **Simplified Main Menu:** The main launcher will only show "Lego Lookup", "Settings", and "Exit".
+    -   **Focused Management System:** The Lego Management System will only show "Personal Collection", hiding the "Non-Retired" and "Retired" set menus.
+
+3.  **Switching Back:**
+    -   To restore all options, go to "Settings" and select "Switch to Full Mode".
+
 
 ## 📊 Data Structures
 
