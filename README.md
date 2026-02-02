@@ -47,12 +47,12 @@ This project is a powerful, menu-driven system for LEGO enthusiasts to manage th
 -   **Interactive Terminal UI:**
     -   A dynamic and responsive menu-driven interface created with Bash scripting (`tput`).
     -   Colored output for better readability and user experience.
-
+<!--
 # ## Application Tour
 
 # Here is a glimpse into the KC LEGO Management System.
 
-# **Main Menu**
+ **Main Menu**
 # *(A brief description of the main entry point of the application.)*
 # > ![Main Menu](Lego/screenshots/01-main-menu.png)
 
@@ -69,6 +69,8 @@ This project is a powerful, menu-driven system for LEGO enthusiasts to manage th
 # > ![User Management](Lego/screenshots/04-user-management.png)
 
 # ***Note:** To add screenshots, place your images in the `Lego/screenshots/` directory and uncomment the Markdown image tags above.*
+
+<!-->
 
 ## User Account Management
 
