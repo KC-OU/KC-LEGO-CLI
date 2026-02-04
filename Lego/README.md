@@ -22,7 +22,8 @@ A comprehensive bash and Python-based application for managing personal LEGO col
 - [Default Credentials](#default-credentials)
 - [Installation & Setup](#installation--setup)
 - [User Guide](#user-guide)
-- [Configuration File for Menu Customization](#configuration-file-for-menu-customization)- [Development](#development)
+- [Configuration File for Menu Customization](#configuration-file-for-menu-customization)
+- [Development](#development)
 - [Data Structures](#data-structures)
 - [Troubleshooting](#troubleshooting)
 
@@ -35,7 +36,7 @@ The KC LEGO Management System provides:
 - **Non-Personal Collection Tracking** - Manage wish lists and track retired sets
 - **User Management System** - Multi-user support with role-based access
 - **Interactive Menu Interface** - Easy-to-navigate terminal-based UI
-- **Presentation Mode** - A simplified view for clients or colleagues
+
 
 ## 🏗️ System Components
 
@@ -183,22 +184,10 @@ bash --version
    - Enable/disable accounts
    - Reset passwords
 
-### Presentation Mode
-For a simplified experience when demonstrating the application, you can switch to Presentation Mode.
 
-1.  **Enable Presentation Mode:**
-    -   From the main launcher menu, select "Settings".
-    -   Choose "Switch to Presentation Mode".
-
-2.  **What it Does:**
-    -   **Simplified Main Menu:** The main launcher will only show "Lego Lookup", "Settings", and "Exit".
-    -   **Focused Management System:** The Lego Management System will only show "Personal Collection", hiding the "Non-Retired" and "Retired" set menus.
-
-3.  **Switching Back:**
-    -   To restore all options, go to "Settings" and select "Switch to Full Mode".
 
 ### Configuration File for Menu Customization
-The main menu and sub-menus can be customized by editing the `.kc-lego-cli.conf` file located in the project's root directory (`/home/kcollins/Lego/.kc-lego-cli.conf`). This file allows you to hide or show menu items by changing `[ ]` to `[x]` for hidden, or `[x]` to `[ ]` for visible.
+The main menu and sub-menus can be customised by editing the `.kc-lego-cli.conf` file located in the project's root directory (`/home/kcollins/Lego/.kc-lego-cli.conf`). This file allows you to hide or show menu items by changing `[ ]` to `[x]` for hidden, or `[x]` to `[ ]` for visible.
 
 Example:
 ```
