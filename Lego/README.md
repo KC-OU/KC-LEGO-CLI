@@ -22,8 +22,7 @@ A comprehensive bash and Python-based application for managing personal LEGO col
 - [Default Credentials](#default-credentials)
 - [Installation & Setup](#installation--setup)
 - [User Guide](#user-guide)
-- [Screenshots](#screenshots)
-- [Development](#development)
+- [Configuration File for Menu Customization](#configuration-file-for-menu-customization)- [Development](#development)
 - [Data Structures](#data-structures)
 - [Troubleshooting](#troubleshooting)
 
@@ -198,6 +197,21 @@ For a simplified experience when demonstrating the application, you can switch t
 3.  **Switching Back:**
     -   To restore all options, go to "Settings" and select "Switch to Full Mode".
 
+### Configuration File for Menu Customization
+The main menu and sub-menus can be customized by editing the `.kc-lego-cli.conf` file located in the project's root directory (`/home/kcollins/Lego/.kc-lego-cli.conf`). This file allows you to hide or show menu items by changing `[ ]` to `[x]` for hidden, or `[x]` to `[ ]` for visible.
+
+Example:
+```
+# -- LEGO SYSTEM LAUNCHER --
+[ ] Lego Management System
+[ ] Lego Lookup
+[x] View License
+[x] Settings
+```
+In this example, "View License" and "Settings" are hidden.
+Changes to this file are immediately reflected the next time the main launcher is run.
+
+
 
 ## 📊 Data Structures
 
@@ -257,7 +271,6 @@ Lego/
 │   ├── Non-Retired-Lego-Sets/main.sh # Available sets (Python)
 │   └── Retried-and-retiring-Lego-Sets/main.sh # Discontinued sets
 ├── LICENSE                           # MIT license
-├── CLAUDE.md                         # Claude Code guidance
 └── README.md                         # This file
 ```
 

@@ -12,7 +12,7 @@ A comprehensive, terminal-based application for managing personal and non-person
 
 - [Overview](#overview)
 - [Key Features](#key-features)
-- [Application Tour](#application-tour)
+<!-- - [Application Tour](#application-tour) -->
 - [User Account Management](#user-account-management)
 - [Technologies](#technologies)
 - [Project Structure](#project-structure)
