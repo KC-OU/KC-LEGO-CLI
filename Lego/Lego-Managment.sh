@@ -9,6 +9,7 @@ Retired_or_Retiring_LEGO_SETS_SCRIPT="$HOME/Lego/Lego-Magement-Screen/Retried-an
 LegoLookup="$HOME/Lego/Lego-Lookup/lookup-set.sh"
 LegoPartLookup="$HOME/Lego/Lego-Lookup/lookup-part.sh"
 SETTINGS_FILE="$HOME/Lego/.kc-lego-cli.conf"
+LICENSE_FILE="$HOME/Lego/LICENSE"
 
 # Function to center text
 center() {
@@ -39,7 +40,10 @@ show_license_agreement() {
     center "           LICENSE AGREEMENT SCREEN            "
     center "==============================================="
     echo
-    # ... (license text remains the same)
+    while IFS= read -r line; do
+        center "$line"
+    done < "$LICENSE_FILE"
+    echo
     while true; do
         read -rp "$(center 'Do you agree to the license? (yes/no): ')" agree
         case "$agree" in
@@ -209,7 +213,14 @@ startup_menu() {
                 "Lego Lookup") lego_lookup_menu ;;
                 "View License")
                     clear
-                    # ... (license text remains the same)
+                    center "==============================================="
+                    center "               LICENSE                         "
+                    center "==============================================="
+                    echo
+                    while IFS= read -r line; do
+                        center "$line"
+                    done < "$LICENSE_FILE"
+                    echo
                     center "Press Enter to return to the menu."
                     read
                     ;;
