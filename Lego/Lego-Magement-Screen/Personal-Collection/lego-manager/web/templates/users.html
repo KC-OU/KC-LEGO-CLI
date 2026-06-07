@@ -1,0 +1,105 @@
+{{template "layout.html" .}}
+{{define "content"}}
+<div class="bg-white p-8 rounded shadow mb-8">
+    <h2 class="text-2xl font-bold mb-6">Create New User</h2>
+    <form action="/users/create" method="POST" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <input type="text" name="username" placeholder="Username" class="p-2 border rounded" required>
+        <input type="text" name="first_name" placeholder="First Name" class="p-2 border rounded" required>
+        <input type="text" name="last_name" placeholder="Last Name" class="p-2 border rounded" required>
+        <select name="role" class="p-2 border rounded">
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+        </select>
+        <button type="submit" class="md:col-span-4 bg-green-600 text-white p-2 rounded hover:bg-green-700">Create User</button>
+    </form>
+</div>
+
+<div class="bg-white p-8 rounded shadow">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">User Management</h2>
+        <div class="relative">
+            <input type="text" id="userSearch" placeholder="Search users..." class="p-2 pl-8 border rounded text-sm w-64" onkeyup="searchUsers()">
+            <svg class="w-4 h-4 absolute left-2.5 top-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </div>
+    </div>
+    <table class="w-full text-left" id="userTable">
+        <thead>
+            <tr class="border-b bg-gray-50 text-[10px] uppercase text-gray-500 tracking-wider">
+                <th class="py-3 px-2">UserID / Security</th>
+                <th class="py-3 px-2">Username</th>
+                <th class="py-3 px-2">Full Name</th>
+                <th class="py-3 px-2 text-center">System Role</th>
+                <th class="py-3 px-2 text-center">Status</th>
+                <th class="py-3 px-2 text-right">Administrative Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .Items}}
+            <tr class="border-b hover:bg-blue-50 transition-colors user-row">
+                <td class="py-4 px-2">
+                    <form action="/users/user_id" method="POST" class="flex items-center space-x-1">
+                        <input type="hidden" name="id" value="{{.ID}}">
+                        <code class="bg-gray-100 px-1 rounded text-blue-700 font-mono text-xs">#</code>
+                        <input type="text" name="user_id" value="{{.UserID}}" class="text-xs font-mono border-none bg-transparent hover:bg-white focus:bg-white rounded p-0.5 w-20 transition-all focus:ring-1 focus:ring-blue-400">
+                        <button type="submit" class="opacity-0 group-hover:opacity-100 text-[8px] bg-blue-100 text-blue-600 px-1 rounded uppercase font-bold">Update</button>
+                    </form>
+                </td>
+                <td class="py-4 px-2 font-medium text-gray-900">{{.Username}}</td>
+                <td class="py-4 px-2 text-gray-600">{{.FirstName}} {{.LastName}}</td>
+                <td class="py-4 px-2 text-center">
+                    <form action="/users/role" method="POST" class="inline">
+                        <input type="hidden" name="id" value="{{.ID}}">
+                        <select name="role" onchange="this.form.submit()" class="text-xs border rounded p-1 {{if eq .Role "admin"}}bg-red-50 text-red-700 border-red-200 font-bold{{else}}bg-green-50 text-green-700 border-green-200{{end}}">
+                            <option value="user" {{if eq .Role "user"}}selected{{end}}>USER</option>
+                            <option value="admin" {{if eq .Role "admin"}}selected{{end}}>ADMIN</option>
+                        </select>
+                    </form>
+                </td>
+                <td class="py-4 px-2 text-center">
+                    {{if .Disabled}}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-red-100 text-red-800">DISABLED</span>
+                    {{else}}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-green-100 text-green-800">ACTIVE</span>
+                    {{end}}
+                </td>
+                <td class="py-4 px-2 text-right space-x-1">
+                    <form action="/users/toggle" method="POST" class="inline">
+                        <input type="hidden" name="id" value="{{.ID}}">
+                        <input type="hidden" name="disabled" value="{{.Disabled}}">
+                        <button type="submit" class="text-[10px] uppercase font-bold {{if .Disabled}}text-green-600 hover:text-green-800{{else}}text-yellow-600 hover:text-yellow-800{{end}}">
+                            {{if .Disabled}}Enable{{else}}Disable{{end}}
+                        </button>
+                    </form>
+                    <span class="text-gray-300">|</span>
+                    <form action="/users/reset" method="POST" class="inline">
+                        <input type="hidden" name="id" value="{{.ID}}">
+                        <button type="submit" class="text-[10px] uppercase font-bold text-blue-600 hover:text-blue-800">Reset PWD</button>
+                    </form>
+                    <span class="text-gray-300">|</span>
+                    <form action="/users/delete" method="POST" class="inline" onsubmit="return confirm('PERMANENT DELETION: Are you sure?')">
+                        <input type="hidden" name="id" value="{{.ID}}">
+                        <button type="submit" class="text-[10px] uppercase font-bold text-red-600 hover:text-red-800">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+</div>
+
+<script>
+function searchUsers() {
+    var input = document.getElementById("userSearch");
+    var filter = input.value.toUpperCase();
+    var rows = document.getElementsByClassName("user-row");
+    for (var i = 0; i < rows.length; i++) {
+        var text = rows[i].textContent || rows[i].innerText;
+        if (text.toUpperCase().indexOf(filter) > -1) {
+            rows[i].style.display = "";
+        } else {
+            rows[i].style.display = "none";
+        }
+    }
+}
+</script>
+{{end}}

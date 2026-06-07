@@ -1,0 +1,37 @@
+{{template "layout.html" .}}
+{{define "content"}}
+<div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md">
+    <h1 class="text-2xl font-bold mb-6">Add to Wishlist</h1>
+    <form hx-post="/wishlist/add" hx-target="#result" hx-swap="outerHTML">
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="item_type">
+                Item Type
+            </label>
+            <select class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="item_type" name="item_type">
+                <option value="set">Set</option>
+                <option value="part">Part</option>
+                <option value="minifig">Minifigure</option>
+            </select>
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="ref_num">
+                Reference Number (e.g., 75192-1 or 3001)
+            </label>
+            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="ref_num" name="ref_num" type="text" placeholder="Reference Number" required>
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="priority">
+                Priority
+            </label>
+            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="priority" name="priority" type="number" value="1" min="1" max="5">
+        </div>
+        <div class="flex items-center justify-between mt-6">
+            <button class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
+                Add to Wishlist
+            </button>
+            <a href="/wishlist" class="text-gray-600 hover:text-gray-800">Cancel</a>
+        </div>
+    </form>
+    <div id="result" class="mt-6"></div>
+</div>
+{{end}}

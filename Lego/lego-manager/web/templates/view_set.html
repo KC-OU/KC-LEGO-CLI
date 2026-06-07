@@ -1,0 +1,284 @@
+{{template "layout.html" .}}
+{{define "content"}}
+<div class="space-y-6">
+    <div class="flex justify-between items-center bg-white dark:bg-dark-card p-4 rounded-xl border border-gray-100 dark:border-dark-border shadow-sm">
+        <h1 class="text-xl font-black tracking-tight dark:text-white">{{.Set.SetNum}}: {{.Set.Name}}</h1>
+        <a href="/sets" class="bg-gray-100 dark:bg-dark-bg text-gray-600 dark:text-gray-400 px-4 py-2 rounded-lg font-bold text-sm hover:bg-gray-200 transition">Close</a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <!-- Set Overview -->
+        <div class="lg:col-span-1 bg-white dark:bg-dark-card p-6 rounded-2xl border border-gray-100 dark:border-dark-border shadow-sm">
+            <h2 class="text-lg font-black mb-4 dark:text-white">Set Overview</h2>
+            <div class="space-y-3 text-sm">
+                <div class="flex justify-between border-b border-gray-50 dark:border-dark-border pb-2">
+                    <span class="text-gray-400 font-bold uppercase text-[10px]">Set Number</span>
+                    <span class="font-bold dark:text-white">{{.Set.SetNum}}</span>
+                </div>
+                <div class="flex justify-between border-b border-gray-50 dark:border-dark-border pb-2">
+                    <span class="text-gray-400 font-bold uppercase text-[10px]">Name</span>
+                    <span class="font-bold dark:text-white">{{.Set.Name}}</span>
+                </div>
+                <div class="flex justify-between border-b border-gray-50 dark:border-dark-border pb-2">
+                    <span class="text-gray-400 font-bold uppercase text-[10px]">Theme</span>
+                    <span class="font-bold text-blue-600 dark:text-blue-400">{{.Set.Theme}}</span>
+                </div>
+                <div class="flex justify-between border-b border-gray-50 dark:border-dark-border pb-2">
+                    <span class="text-gray-400 font-bold uppercase text-[10px]">Pieces</span>
+                    <span class="font-bold dark:text-white">{{.Set.PartsCount}}</span>
+                </div>
+                <div class="flex justify-between border-b border-gray-50 dark:border-dark-border pb-2">
+                    <span class="text-gray-400 font-bold uppercase text-[10px]">Release Date</span>
+                    <span class="font-bold dark:text-white">01/01/{{.Set.Year}}</span>
+                </div>
+                <div class="flex justify-between border-b border-gray-50 dark:border-dark-border pb-2">
+                    <span class="text-gray-400 font-bold uppercase text-[10px]">Status</span>
+                    {{if .Retired}}
+                    <span class="font-black text-red-600 uppercase italic">Retired</span>
+                    {{else}}
+                    <span class="font-black text-green-600 uppercase italic">Available</span>
+                    {{end}}
+                </div>
+                <div class="flex justify-between border-b border-gray-50 dark:border-dark-border pb-2">
+                    <span class="text-gray-400 font-bold uppercase text-[10px]">MSRP ({{.Currency}})</span>
+                    <span class="font-bold dark:text-white">{{formatCurrency .Set.Price .Currency}}</span>
+                </div>
+            </div>
+            <div class="mt-6 pt-6 border-t border-gray-100 dark:border-dark-border">
+                <div class="flex space-x-4 items-center">
+                    {{if .LegoLink}}<a href="{{.LegoLink}}" target="_blank" class="hover:scale-110 transition"><img src="https://upload.wikimedia.org/wikipedia/commons/2/24/LEGO_logo.svg" class="h-6"></a>{{end}}
+                    {{if .AmazonLink}}<a href="{{.AmazonLink}}" target="_blank" class="hover:scale-110 transition"><img src="https://upload.wikimedia.org/wikipedia/commons/4/41/Amazon_Logo.svg" class="h-4"></a>{{end}}
+                    {{if .EbayLink}}<a href="{{.EbayLink}}" target="_blank" class="hover:scale-110 transition"><img src="https://upload.wikimedia.org/wikipedia/commons/1/1b/EBay_logo.svg" class="h-6"></a>{{end}}
+                </div>
+            </div>
+        </div>
+
+        <!-- Image Main -->
+        <div class="lg:col-span-2 bg-white dark:bg-dark-card p-6 rounded-2xl border border-gray-100 dark:border-dark-border shadow-sm flex flex-col items-center justify-center relative min-h-[450px]">
+            <img id="main-image" src="{{.Set.ImageURL}}" class="max-h-[400px] object-contain transition-opacity duration-300" alt="{{.Set.Name}}">
+            <div class="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col space-y-3">
+                <button onclick="changeImage('{{.Set.ImageURL}}')" class="p-1 border-2 border-blue-500 rounded-lg bg-gray-50 dark:bg-dark-bg hover:border-blue-500 transition shadow-sm">
+                    <img src="{{.Set.ImageURL}}" class="w-12 h-12 object-contain" title="Main Image">
+                </button>
+                {{if .BoxArtURL}}
+                <button onclick="changeImage('{{.BoxArtURL}}')" class="p-1 border-2 border-transparent rounded-lg bg-gray-50 dark:bg-dark-bg hover:border-blue-500 transition shadow-sm">
+                    <img src="{{.BoxArtURL}}" class="w-12 h-12 object-contain" title="Box Art">
+                </button>
+                {{end}}
+                {{if .InstructionsURL}}
+                <button onclick="changeImage('{{.InstructionsURL}}')" class="p-1 border-2 border-transparent rounded-lg bg-gray-50 dark:bg-dark-bg hover:border-blue-500 transition shadow-sm">
+                    <img src="{{.InstructionsURL}}" class="w-12 h-12 object-contain" title="Instructions">
+                </button>
+                {{end}}
+            </div>
+        </div>
+
+        <!-- Values & History -->
+        <div class="lg:col-span-1 bg-white dark:bg-dark-card p-6 rounded-2xl border border-gray-100 dark:border-dark-border shadow-sm">
+            <h2 class="text-lg font-black mb-4 dark:text-white">Market Values</h2>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-2">
+                    <h3 class="text-[10px] font-black uppercase text-gray-400">Amazon</h3>
+                    <div class="flex flex-col">
+                        <span class="text-xs text-red-500 font-bold">{{.Amazon.Appreciation}}%</span>
+                        <span class="text-sm font-black dark:text-white">{{formatCurrency .Amazon.LowPrice $.Currency}}</span>
+                        <span class="text-[10px] text-gray-400">Low Price</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-sm font-black dark:text-white">{{formatCurrency .Amazon.AvgPrice $.Currency}}</span>
+                        <span class="text-[10px] text-gray-400">6mo Avg Price</span>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <h3 class="text-[10px] font-black uppercase text-gray-400">BrickLink</h3>
+                    <div class="flex flex-col">
+                        <span class="text-xs text-red-500 font-bold">{{.BrickLink.Appreciation}}%</span>
+                        <span class="text-sm font-black dark:text-white">{{formatCurrency .BrickLink.LowPrice $.Currency}}</span>
+                        <span class="text-[10px] text-gray-400">Low Price</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-sm font-black dark:text-white">{{formatCurrency .BrickLink.AvgPrice $.Currency}}</span>
+                        <span class="text-[10px] text-gray-400">6mo Avg Price</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 pt-6 border-t border-gray-100 dark:border-dark-border space-y-3">
+                <h3 class="text-[10px] font-black uppercase text-gray-400">Part Out Values</h3>
+                <div class="flex justify-between items-center">
+                    <span class="text-xs dark:text-gray-300">Total Minifig Value</span>
+                    <span class="text-sm font-black dark:text-white">{{formatCurrency .PartOut.MinifigValue $.Currency}}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-xs dark:text-gray-300">Total Part Out Value</span>
+                    <span class="text-sm font-black dark:text-white">{{formatCurrency .PartOut.TotalValue $.Currency}}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-xs dark:text-gray-300">Confidence</span>
+                    <span class="text-sm font-black text-blue-600 dark:text-blue-400">{{.PartOut.Confidence}}%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs Section -->
+    <div class="bg-white dark:bg-dark-card rounded-2xl border border-gray-100 dark:border-dark-border shadow-sm overflow-hidden">
+        <div class="flex border-b border-gray-100 dark:border-dark-border px-6">
+            <button onclick="switchTab('parts')" id="tab-parts-btn" class="px-4 py-4 border-b-2 border-blue-600 dark:border-blue-400 text-sm font-black text-blue-600 dark:text-blue-400">Parts Inventory</button>
+            <button onclick="switchTab('minifigs')" id="tab-minifigs-btn" class="px-4 py-4 border-b-2 border-transparent text-sm font-bold text-gray-400 hover:text-gray-600">Minifigures</button>
+            <button onclick="switchTab('similar')" id="tab-similar-btn" class="px-4 py-4 border-b-2 border-transparent text-sm font-bold text-gray-400 hover:text-gray-600">Similar Sets</button>
+        </div>
+        <div class="p-6">
+            <!-- Parts Tab -->
+            <div id="tab-parts" class="tab-content">
+                <div class="flex flex-col md:flex-row gap-4 mb-6 items-center">
+                    <div class="relative flex-grow w-full">
+                        <input type="text" 
+                            name="q" 
+                            placeholder="Search parts in this set..." 
+                            class="w-full bg-gray-50 dark:bg-dark-bg border border-gray-100 dark:border-dark-border rounded-xl py-2 px-10 text-xs font-bold outline-none focus:border-blue-500 transition-colors"
+                            hx-get="/sets/view?id={{.Set.ID}}"
+                            hx-trigger="keyup changed delay:500ms"
+                            hx-target="#parts-grid"
+                            hx-select="#parts-grid">
+                        <svg class="w-3 h-3 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <select name="sort" 
+                        class="bg-gray-50 dark:bg-dark-bg border border-gray-100 dark:border-dark-border rounded-xl py-2 px-4 text-[10px] font-black uppercase tracking-widest outline-none focus:border-blue-500 transition-colors w-full md:w-auto"
+                        hx-get="/sets/view?id={{.Set.ID}}"
+                        hx-trigger="change"
+                        hx-target="#parts-grid"
+                        hx-select="#parts-grid"
+                        hx-include="[name='q']">
+                        <option value="name">Name</option>
+                        <option value="part_num">Part #</option>
+                        <option value="quantity">Quantity</option>
+                        <option value="price">Price</option>
+                        <option value="color">Color</option>
+                    </select>
+                </div>
+                <div id="parts-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {{$setID := .Set.ID}}
+                    {{$progress := .Progress}}
+                    {{range .Parts}}
+                    {{$found := index $progress .ID}}
+                    {{$missing := sub .QuantityInSet $found}}
+                    <div class="flex flex-col space-y-2 p-3 bg-gray-50 dark:bg-dark-bg/50 rounded-xl border {{if eq $missing 0}}border-green-500{{else}}border-transparent{{end}} transition-colors">
+                        <div class="flex items-center space-x-3">
+                            <img src="{{.ImageURL}}" class="w-10 h-10 object-contain" alt="{{.Name}}">
+                            <div class="flex-grow min-w-0">
+                                <p class="text-xs font-bold truncate dark:text-white">{{.Name}}</p>
+                                <p class="text-[10px] text-gray-400">{{.PartNum}} &middot; {{.Color}}</p>
+                            </div>
+                            <div class="text-right flex flex-col items-end">
+                                <p class="text-xs font-black dark:text-white">x{{.QuantityInSet}}</p>
+                                {{if gt $missing 0}}
+                                <div class="flex gap-1 mt-1">
+                                    <a href="https://www.bricklink.com/v2/catalog/catalogitem.page?P={{.PartNum}}" target="_blank" class="text-[8px] bg-blue-600 text-white px-1.5 py-0.5 rounded font-black tracking-widest hover:bg-blue-700">BL</a>
+                                    <a href="https://www.lego.com/en-gb/pick-and-build/pick-a-brick?query={{.PartNum}}" target="_blank" class="text-[8px] bg-yellow-500 text-black px-1.5 py-0.5 rounded font-black tracking-widest hover:bg-yellow-600">PAB</a>
+                                </div>
+                                {{end}}
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-200 dark:border-dark-border">
+                            <span class="text-[9px] font-black uppercase text-gray-400">Found: {{$found}} / {{.QuantityInSet}}</span>
+                            <form hx-post="/sets/progress" hx-swap="none" class="flex items-center space-x-1">
+                                <input type="hidden" name="set_id" value="{{$setID}}">
+                                <input type="hidden" name="part_id" value="{{.ID}}">
+                                <input type="number" name="found_quantity" value="{{$found}}" min="0" max="{{.QuantityInSet}}" class="w-12 h-6 text-xs text-center border border-gray-200 dark:border-dark-border rounded bg-white dark:bg-dark-card" onchange="this.form.dispatchEvent(new Event('submit'))">
+                            </form>
+                        </div>
+                    </div>
+                    {{else}}
+                    <p class="col-span-full text-center text-gray-500 py-8 italic text-sm">No parts linked to this set yet.</p>
+                    {{end}}
+                </div>
+            </div>
+
+            <!-- Minifigs Tab -->
+            <div id="tab-minifigs" class="tab-content hidden">
+                <form action="/sets/sync-minifigs" method="POST" class="mb-8 p-4 bg-gray-50 dark:bg-dark-bg/50 rounded-2xl flex items-end space-x-4">
+                    <input type="hidden" name="set_id" value="{{.Set.ID}}">
+                    <div class="flex-grow">
+                        <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">Add Figure from Collection</label>
+                        <select name="minifig_id" class="w-full p-2 bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-lg text-sm" required>
+                            {{range .AllMinifigs}}
+                            <option value="{{.ID}}">{{.FigNum}} - {{.Name}}</option>
+                            {{end}}
+                        </select>
+                    </div>
+                    <div class="w-24">
+                        <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">Qty</label>
+                        <input type="number" name="quantity" value="1" min="1" class="w-full p-2 bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-lg text-sm">
+                    </div>
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-md hover:bg-blue-700 transition">Link</button>
+                </form>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                    {{range .Minifigs}}
+                    <div class="text-center p-4 bg-gray-50 dark:bg-dark-bg/50 rounded-2xl">
+                        <img src="{{.ImageURL}}" class="w-20 h-20 object-contain mx-auto mb-2" alt="{{.Name}}">
+                        <p class="text-xs font-black dark:text-white truncate">{{.Name}}</p>
+                        <p class="text-[10px] text-gray-400">{{.FigNum}}</p>
+                        <p class="mt-1 text-[10px] font-bold text-blue-600 dark:text-blue-400">Qty: {{.Quantity}}</p>
+                    </div>
+                    {{else}}
+                    <p class="col-span-full text-center text-gray-500 py-8 italic text-sm">No minifigures linked to this set yet.</p>
+                    {{end}}
+                </div>
+            </div>
+
+            <!-- Similar Sets Tab -->
+            <div id="tab-similar" class="tab-content hidden">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    {{range .SimilarSets}}
+                    <div class="text-center p-4 bg-gray-50 dark:bg-dark-bg/50 rounded-2xl group cursor-pointer hover:shadow-lg transition">
+                        <img src="{{.ImageURL}}" class="w-full h-32 object-contain mx-auto mb-2 group-hover:scale-110 transition" alt="{{.Name}}">
+                        <p class="text-xs font-black dark:text-white truncate">{{.Name}}</p>
+                        <p class="text-[10px] text-gray-400">{{.SetNum}}</p>
+                    </div>
+                    {{end}}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function changeImage(url) {
+        const mainImg = document.getElementById('main-image');
+        mainImg.style.opacity = '0';
+        setTimeout(() => {
+            mainImg.src = url;
+            mainImg.style.opacity = '1';
+        }, 300);
+
+        // Update active thumbnail border
+        event.currentTarget.parentElement.querySelectorAll('button').forEach(btn => {
+            btn.classList.remove('border-blue-500');
+            btn.classList.add('border-transparent');
+        });
+        event.currentTarget.classList.remove('border-transparent');
+        event.currentTarget.classList.add('border-blue-500');
+    }
+
+    function switchTab(tabId) {
+        // Hide all contents
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        // Show target content
+        document.getElementById('tab-' + tabId).classList.remove('hidden');
+        
+        // Reset button styles
+        document.querySelectorAll('[id^="tab-"][id$="-btn"]').forEach(btn => {
+            btn.classList.remove('border-blue-600', 'dark:border-blue-400', 'text-blue-600', 'dark:text-blue-400', 'font-black');
+            btn.classList.add('border-transparent', 'text-gray-400', 'font-bold');
+        });
+        
+        // Highlight active button
+        const activeBtn = document.getElementById('tab-' + tabId + '-btn');
+        activeBtn.classList.remove('border-transparent', 'text-gray-400', 'font-bold');
+        activeBtn.classList.add('border-blue-600', 'dark:border-blue-400', 'text-blue-600', 'dark:text-blue-400', 'font-black');
+    }
+</script>
+{{end}}

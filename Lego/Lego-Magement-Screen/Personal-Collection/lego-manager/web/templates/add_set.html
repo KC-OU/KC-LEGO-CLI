@@ -1,0 +1,96 @@
+{{template "layout.html" .}}
+{{define "content"}}
+<div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md">
+    <h1 class="text-2xl font-bold mb-6">Add New Lego Set</h1>
+    <form action="/sets/add" method="POST" enctype="multipart/form-data">
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="set_num">
+                Set Number (e.g., 75192-1)
+            </label>
+            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="set_num" name="set_num" type="text" placeholder="Set Number" required>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="quantity">
+                    Quantity
+                </label>
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="quantity" name="quantity" type="number" value="1" min="1">
+            </div>
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="price">
+                    Price
+                </label>
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="price" name="price" type="number" step="0.01" placeholder="0.00">
+            </div>
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="cost">
+                    Cost
+                </label>
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="cost" name="cost" type="number" step="0.01" placeholder="0.00">
+            </div>
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="condition">
+                    Condition
+                </label>
+                <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="condition" name="condition">
+                    <option value="New">New</option>
+                    <option value="Used">Used</option>
+                    <option value="Incomplete">Incomplete</option>
+                </select>
+            </div>
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="remarks">
+                Remarks
+            </label>
+            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="remarks" name="remarks" type="text" placeholder="Remarks">
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Box Art URL</label>
+                <input class="shadow border rounded w-full py-2 px-3 text-sm" name="box_art_url" type="text" placeholder="https://...">
+            </div>
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Instructions Image URL</label>
+                <input class="shadow border rounded w-full py-2 px-3 text-sm" name="instructions_url" type="text" placeholder="https://...">
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div>
+                <label class="block text-gray-700 text-xs font-bold mb-1">LEGO.com Link</label>
+                <input class="shadow border rounded w-full py-2 px-3 text-xs" name="lego_link" type="text" placeholder="https://...">
+            </div>
+            <div>
+                <label class="block text-gray-700 text-xs font-bold mb-1">eBay Link</label>
+                <input class="shadow border rounded w-full py-2 px-3 text-xs" name="ebay_link" type="text" placeholder="https://...">
+            </div>
+            <div>
+                <label class="block text-gray-700 text-xs font-bold mb-1">Amazon Link</label>
+                <input class="shadow border rounded w-full py-2 px-3 text-xs" name="amazon_link" type="text" placeholder="https://...">
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label class="inline-flex items-center">
+                <input type="checkbox" name="has_instructions" class="form-checkbox h-5 w-5 text-blue-600">
+                <span class="ml-2 text-gray-700 font-bold">Do I have the instructions?</span>
+            </label>
+        </div>
+
+        <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-bold mb-2">LDraw Module (.ldr, .dat, .mpd)</label>
+            <input type="file" name="ldraw_file" accept=".ldr,.dat,.mpd" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+        </div>
+
+        <div class="flex items-center justify-between mt-6">
+            <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
+                Add Set
+            </button>
+            <a href="/sets" class="text-gray-600 hover:text-gray-800">Cancel</a>
+        </div>
+    </form>
+    <div id="result" class="mt-6"></div>
+</div>
+{{end}}

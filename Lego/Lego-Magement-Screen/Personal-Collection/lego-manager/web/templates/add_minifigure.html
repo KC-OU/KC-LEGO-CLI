@@ -1,0 +1,27 @@
+{{template "layout.html" .}}
+{{define "content"}}
+<div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md">
+    <h1 class="text-2xl font-bold mb-6">Add New Minifigure</h1>
+    <form hx-post="/minifigures/add" hx-target="#result" hx-swap="outerHTML">
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="fig_num">
+                Figure Number (e.g., sw0001)
+            </label>
+            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="fig_num" name="fig_num" type="text" placeholder="Figure Number" required>
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="quantity">
+                Quantity
+            </label>
+            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="quantity" name="quantity" type="number" value="1" min="1">
+        </div>
+        <div class="flex items-center justify-between mt-6">
+            <button class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
+                Fetch and Add Figure
+            </button>
+            <a href="/minifigures" class="text-gray-600 hover:text-gray-800">Cancel</a>
+        </div>
+    </form>
+    <div id="result" class="mt-6"></div>
+</div>
+{{end}}

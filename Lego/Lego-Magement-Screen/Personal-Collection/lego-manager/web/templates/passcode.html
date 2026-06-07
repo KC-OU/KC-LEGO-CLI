@@ -1,0 +1,35 @@
+{{template "layout.html" .}}
+{{define "content"}}
+<div class="min-h-[60vh] flex items-center justify-center">
+    <div class="bg-white dark:bg-dark-card p-8 rounded-3xl shadow-2xl border border-gray-100 dark:border-dark-border w-full max-w-md">
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-blue-50 dark:bg-blue-900/20 mb-4">
+                <svg class="w-10 h-10 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002-2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                </svg>
+            </div>
+            <h1 class="text-3xl font-black dark:text-white tracking-tighter uppercase">Professional Access</h1>
+            <p class="text-gray-500 dark:text-gray-400 font-medium">Please enter your system passcode to continue.</p>
+        </div>
+
+        {{if .Error}}
+        <div class="bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 p-4 rounded-xl mb-6 flex items-center">
+            <svg class="w-5 h-5 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+            <span class="text-red-700 dark:text-red-400 text-sm font-bold">{{.Error}}</span>
+        </div>
+        {{end}}
+
+        <form action="/verify-passcode" method="POST" class="space-y-6">
+            <div>
+                <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">System Passcode</label>
+                <input type="password" name="passcode" required autofocus
+                    class="w-full px-4 py-4 bg-gray-50 dark:bg-dark-bg border-2 border-transparent focus:border-blue-600 dark:focus:border-blue-500 rounded-2xl text-2xl tracking-[1em] text-center font-black dark:text-white transition-all outline-none"
+                    placeholder="••••">
+            </div>
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl shadow-lg shadow-blue-500/30 transition-all active:scale-[0.98]">
+                Unlock Dashboard
+            </button>
+        </form>
+    </div>
+</div>
+{{end}}

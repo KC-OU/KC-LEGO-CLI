@@ -1,0 +1,54 @@
+{{template "layout.html" .}}
+{{define "content"}}
+<div class="space-y-10">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div>
+            <h1 class="text-4xl font-black tracking-tighter dark:text-white uppercase">Future Acquisitions</h1>
+            <p class="text-gray-500 dark:text-gray-400 font-medium italic">Strategic wishlist for collection expansion.</p>
+        </div>
+        <a href="/wishlist/new" class="bg-red-600 hover:bg-red-700 text-white font-black px-8 py-4 rounded-2xl shadow-xl shadow-red-500/20 transition-all active:scale-95 uppercase tracking-widest text-xs flex items-center">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            Add To Protocol
+        </a>
+    </div>
+
+    <div class="bg-white dark:bg-dark-card rounded-[2.5rem] shadow-2xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-dark-border overflow-hidden">
+        <div class="p-10">
+            <div class="space-y-6">
+                {{range .Items}}
+                <div class="flex items-center justify-between p-6 bg-gray-50 dark:bg-dark-bg/50 rounded-3xl border border-transparent hover:border-red-500 transition-all group">
+                    <div class="flex items-center space-x-6">
+                        <div class="w-14 h-14 bg-white dark:bg-dark-card rounded-2xl flex items-center justify-center text-red-600 dark:text-red-400 font-black text-xl shadow-sm border border-gray-100 dark:border-dark-border">
+                            {{if eq .ItemType "set"}}S{{else if eq .ItemType "part"}}P{{else}}M{{end}}
+                        </div>
+                        <div>
+                            <h3 class="font-black text-lg text-gray-900 dark:text-white uppercase tracking-tighter leading-tight">{{.Name}}</h3>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mt-1">{{.ItemType}} &middot; REF: {{.RefNum}}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-6">
+                        <span class="px-4 py-1.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[10px] font-black rounded-full uppercase tracking-widest border border-red-200 dark:border-red-800/30">
+                            PRIORITY {{.Priority}}
+                        </span>
+                        <form action="/wishlist/delete" method="POST" onsubmit="return confirm('Abort acquisition protocol?')">
+                            <input type="hidden" name="id" value="{{.ID}}">
+                            <button type="submit" class="p-3 text-gray-300 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {{else}}
+                <div class="text-center py-20">
+                    <div class="w-24 h-24 bg-gray-50 dark:bg-dark-bg rounded-full flex items-center justify-center mx-auto mb-8 text-gray-200">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                    </div>
+                    <p class="text-gray-400 font-black uppercase tracking-[0.3em] text-sm">No Targets Identified</p>
+                    <p class="text-xs text-gray-400 mt-2 font-medium italic">Your strategic wishlist is currently empty.</p>
+                </div>
+                {{end}}
+            </div>
+        </div>
+    </div>
+</div>
+{{end}}

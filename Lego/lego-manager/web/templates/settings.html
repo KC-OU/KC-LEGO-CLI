@@ -1,0 +1,192 @@
+{{template "layout.html" .}}
+{{define "content"}}
+<div class="space-y-8">
+    <div class="bg-white dark:bg-dark-card p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-dark-border">
+        <h1 class="text-3xl font-black tracking-tighter dark:text-white mb-6">System Settings</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- API Keys -->
+            <div class="space-y-6">
+                <h2 class="text-xl font-bold dark:text-white border-b pb-2">System Configuration</h2>
+                <form action="/settings/save" method="POST" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Rebrickable API Key</label>
+                        <input type="password" name="rebrickable_key" value="{{.RebrickableKey}}" class="w-full p-2 bg-gray-50 dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-lg text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">BrickLink API Key</label>
+                        <input type="password" name="bricklink_key" value="{{.BrickLinkKey}}" class="w-full p-2 bg-gray-50 dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-lg text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">BrickOwl API Key</label>
+                        <input type="password" name="brickowl_key" value="{{.BrickOwlKey}}" class="w-full p-2 bg-gray-50 dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-lg text-sm">
+                    </div>
+                    <div class="pt-4 border-t border-gray-100 dark:border-dark-border">
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">System Passcode</label>
+                        <input type="text" name="system_passcode" value="{{.SystemPasscode}}" placeholder="Leave blank to disable" class="w-full p-2 bg-gray-50 dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-lg text-sm font-mono">
+                        <p class="text-[10px] text-gray-400 mt-1 italic">Extra security layer for professional environments.</p>
+                    </div>
+                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-blue-700 transition w-full">Save Configuration</button>
+                </form>
+            </div>
+
+            <!-- Manual Deals -->
+            <div class="space-y-6">
+                <h2 class="text-xl font-bold dark:text-white border-b pb-2">Manual LEGO Deals</h2>
+                <form action="/deals/add" method="POST" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Set Name</label>
+                            <input type="text" name="name" placeholder="Boutique Hotel" class="w-full p-2 bg-gray-50 dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-lg text-sm" required>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Set #</label>
+                            <input type="text" name="set_num" placeholder="10297" class="w-full p-2 bg-gray-50 dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-lg text-sm">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Store</label>
+                            <input type="text" name="store" placeholder="Amazon UK" class="w-full p-2 bg-gray-50 dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-lg text-sm" required>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Price</label>
+                            <input type="number" step="0.01" name="price" placeholder="159.99" class="w-full p-2 bg-gray-50 dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-lg text-sm" required>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Discount %</label>
+                            <input type="number" name="discount" placeholder="20" class="w-full p-2 bg-gray-50 dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-lg text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Country</label>
+                            <select name="country" class="w-full p-2 bg-gray-50 dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-lg text-sm">
+                                <option value="UK">United Kingdom</option>
+                                <option value="USA">USA</option>
+                                <option value="Europe">Europe</option>
+                                <option value="China">China</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Image URL</label>
+                            <input type="text" name="image_url" placeholder="https://..." class="w-full p-2 bg-gray-50 dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-lg text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Deal Link</label>
+                            <input type="text" name="link" placeholder="https://..." class="w-full p-2 bg-gray-50 dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-lg text-sm">
+                        </div>
+                    </div>
+                    <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-green-700 transition w-full">Add Deal to Dashboard</button>
+                </form>
+
+                <div class="pt-6 border-t border-gray-100 dark:border-dark-border">
+                    <h3 class="text-lg font-bold dark:text-white mb-4">Batch Operations</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-4 bg-gray-50 dark:bg-dark-bg rounded-xl border border-gray-100 dark:border-dark-border">
+                            <p class="text-xs font-bold text-gray-400 uppercase mb-2">Export Deals</p>
+                            <a href="/deals/export" class="inline-block bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-gray-700 transition">Download CSV</a>
+                        </div>
+                        <div class="p-4 bg-gray-50 dark:bg-dark-bg rounded-xl border border-gray-100 dark:border-dark-border">
+                            <p class="text-xs font-bold text-gray-400 uppercase mb-2">Import Deals</p>
+                            <form action="/deals/import" method="POST" enctype="multipart/form-data" class="flex items-center space-x-2">
+                                <input type="file" name="deals_file" accept=".csv" class="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" required>
+                                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 transition">Import</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Collection Management -->
+    <div class="bg-white dark:bg-dark-card p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-dark-border">
+        <h2 class="text-2xl font-black tracking-tighter dark:text-white mb-6 uppercase">Collection Management</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Templates -->
+            <div class="space-y-4">
+                <h3 class="text-sm font-black text-gray-400 uppercase tracking-widest border-b pb-2">CSV Templates</h3>
+                <div class="flex flex-col space-y-2">
+                    <a href="/download-template?type=sets" class="flex items-center justify-between p-3 bg-gray-50 dark:bg-dark-bg rounded-xl border border-gray-100 dark:border-dark-border hover:border-blue-500 transition-colors group">
+                        <span class="text-xs font-bold dark:text-white">Sets Template</span>
+                        <svg class="w-4 h-4 text-blue-600 group-hover:translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    </a>
+                    <a href="/download-template?type=parts" class="flex items-center justify-between p-3 bg-gray-50 dark:bg-dark-bg rounded-xl border border-gray-100 dark:border-dark-border hover:border-green-500 transition-colors group">
+                        <span class="text-xs font-bold dark:text-white">Parts Template</span>
+                        <svg class="w-4 h-4 text-green-600 group-hover:translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    </a>
+                    <a href="/download-template?type=minifigures" class="flex items-center justify-between p-3 bg-gray-50 dark:bg-dark-bg rounded-xl border border-gray-100 dark:border-dark-border hover:border-yellow-500 transition-colors group">
+                        <span class="text-xs font-bold dark:text-white">Minifigures Template</span>
+                        <svg class="w-4 h-4 text-yellow-500 group-hover:translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Import -->
+            <div class="lg:col-span-2 space-y-4">
+                <h3 class="text-sm font-black text-gray-400 uppercase tracking-widest border-b pb-2">Batch Import</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-4 bg-gray-50 dark:bg-dark-bg rounded-2xl border border-gray-100 dark:border-dark-border">
+                        <p class="text-[10px] font-black text-gray-400 uppercase mb-3">Import Sets</p>
+                        <form action="/sets/import" method="POST" enctype="multipart/form-data" class="space-y-3">
+                            <input type="file" name="sets_csv" accept=".csv,.json,.xml" class="block w-full text-[10px] text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:uppercase file:bg-blue-600 file:text-white hover:file:bg-blue-700">
+                            <button type="submit" class="w-full bg-gray-900 dark:bg-white dark:text-gray-900 text-white py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:opacity-80 transition">Execute Import</button>
+                        </form>
+                    </div>
+                    <div class="p-4 bg-gray-50 dark:bg-dark-bg rounded-2xl border border-gray-100 dark:border-dark-border">
+                        <p class="text-[10px] font-black text-gray-400 uppercase mb-3">Import Parts</p>
+                        <form action="/parts/import" method="POST" enctype="multipart/form-data" class="space-y-3">
+                            <input type="file" name="parts_csv" accept=".csv,.json,.xml" class="block w-full text-[10px] text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:uppercase file:bg-green-600 file:text-white hover:file:bg-green-700">
+                            <button type="submit" class="w-full bg-gray-900 dark:bg-white dark:text-gray-900 text-white py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:opacity-80 transition">Execute Import</button>
+                        </form>
+                    </div>
+                    <div class="p-4 bg-gray-50 dark:bg-dark-bg rounded-2xl border border-gray-100 dark:border-dark-border">
+                        <p class="text-[10px] font-black text-gray-400 uppercase mb-3">Import Figures</p>
+                        <form action="/minifigures/import" method="POST" enctype="multipart/form-data" class="space-y-3">
+                            <input type="file" name="figs_csv" accept=".csv,.json,.xml" class="block w-full text-[10px] text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:uppercase file:bg-yellow-500 file:text-white hover:file:bg-yellow-600">
+                            <button type="submit" class="w-full bg-gray-900 dark:bg-white dark:text-gray-900 text-white py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:opacity-80 transition">Execute Import</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export -->
+            <div class="space-y-4">
+                <h3 class="text-sm font-black text-gray-400 uppercase tracking-widest border-b pb-2">Batch Export</h3>
+                <div class="space-y-4">
+                    <!-- Sets Export -->
+                    <div class="space-y-1">
+                        <p class="text-[9px] font-black text-gray-400 uppercase">Sets</p>
+                        <div class="flex flex-wrap gap-1">
+                            <a href="/sets/export?format=csv" class="px-2 py-1 bg-gray-900 dark:bg-white dark:text-gray-900 text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:opacity-80 transition">CSV</a>
+                            <a href="/sets/export?format=json" class="px-2 py-1 bg-blue-600 text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:opacity-80 transition">JSON</a>
+                            <a href="/sets/export?format=xml" class="px-2 py-1 bg-green-600 text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:opacity-80 transition">XML</a>
+                        </div>
+                    </div>
+                    <!-- Parts Export -->
+                    <div class="space-y-1">
+                        <p class="text-[9px] font-black text-gray-400 uppercase">Parts</p>
+                        <div class="flex flex-wrap gap-1">
+                            <a href="/parts/export/csv" class="px-2 py-1 bg-gray-900 dark:bg-white dark:text-gray-900 text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:opacity-80 transition">CSV</a>
+                            <a href="/parts/export?format=json" class="px-2 py-1 bg-blue-600 text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:opacity-80 transition">JSON</a>
+                            <a href="/parts/export?format=xml" class="px-2 py-1 bg-green-600 text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:opacity-80 transition">XML</a>
+                        </div>
+                    </div>
+                    <!-- Figures Export -->
+                    <div class="space-y-1">
+                        <p class="text-[9px] font-black text-gray-400 uppercase">Figures</p>
+                        <div class="flex flex-wrap gap-1">
+                            <a href="/minifigures/export/csv" class="px-2 py-1 bg-gray-900 dark:bg-white dark:text-gray-900 text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:opacity-80 transition">CSV</a>
+                            <a href="/minifigures/export?format=json" class="px-2 py-1 bg-blue-600 text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:opacity-80 transition">JSON</a>
+                            <a href="/minifigures/export?format=xml" class="px-2 py-1 bg-green-600 text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:opacity-80 transition">XML</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{end}}

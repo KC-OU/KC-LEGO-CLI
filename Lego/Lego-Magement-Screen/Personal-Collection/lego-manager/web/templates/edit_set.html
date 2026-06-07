@@ -1,0 +1,154 @@
+{{template "layout.html" .}}
+{{define "content"}}
+<div class="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-md border border-red-100">
+    <div class="flex justify-between items-center mb-8 border-b pb-4">
+        <h1 class="text-2xl font-black text-red-800 uppercase tracking-tighter">Edit Set Metadata</h1>
+        <span class="bg-red-600 text-white px-3 py-1 rounded text-xs font-bold uppercase">Admin Only</span>
+    </div>
+
+    <form action="/sets/update" method="POST" class="space-y-6" enctype="multipart/form-data">
+        <input type="hidden" name="id" value="{{.ID}}">
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="md:col-span-2">
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Set Name</label>
+                <input type="text" name="name" value="{{.Name}}" class="w-full p-2 border rounded font-medium" required>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Set Number</label>
+                <input type="text" name="set_num" value="{{.SetNum}}" class="w-full p-2 border rounded font-mono" required>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Year</label>
+                <input type="number" name="year" value="{{.Year}}" class="w-full p-2 border rounded">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Quantity Owned</label>
+                <input type="number" name="quantity" value="{{.Quantity}}" class="w-full p-2 border rounded" required>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Price (Retail)</label>
+                <input type="number" step="0.01" name="price" value="{{.Price}}" class="w-full p-2 border rounded text-green-700 font-bold">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Cost (Paid)</label>
+                <input type="number" step="0.01" name="cost" value="{{.Cost}}" class="w-full p-2 border rounded text-blue-700 font-bold">
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Image URL (Main Set)</label>
+            <input type="text" name="image_url" value="{{.ImageURL}}" class="w-full p-2 border rounded text-sm font-mono" placeholder="https://...">
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Box Art URL</label>
+                <input type="text" name="box_art_url" value="{{.BoxArtURL}}" class="w-full p-2 border rounded text-sm font-mono" placeholder="https://...">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Instructions Image URL</label>
+                <input type="text" name="instructions_url" value="{{.InstructionsURL}}" class="w-full p-2 border rounded text-sm font-mono" placeholder="https://...">
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">LEGO.com Link</label>
+                <input type="text" name="lego_link" value="{{.LegoLink}}" class="w-full p-2 border rounded text-xs" placeholder="https://...">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">eBay Link</label>
+                <input type="text" name="ebay_link" value="{{.EbayLink}}" class="w-full p-2 border rounded text-xs" placeholder="https://...">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Amazon Link</label>
+                <input type="text" name="amazon_link" value="{{.AmazonLink}}" class="w-full p-2 border rounded text-xs" placeholder="https://...">
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Theme</label>
+                <input type="text" name="theme" value="{{.Theme}}" class="w-full p-2 border rounded">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Parts Count</label>
+                <input type="number" name="parts_count" value="{{.PartsCount}}" class="w-full p-2 border rounded">
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Condition</label>
+                <select name="condition" class="w-full p-2 border rounded">
+                    <option value="New" {{if eq .Condition "New"}}selected{{end}}>New</option>
+                    <option value="Used" {{if eq .Condition "Used"}}selected{{end}}>Used</option>
+                    <option value="Incomplete" {{if eq .Condition "Incomplete"}}selected{{end}}>Incomplete</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Remarks</label>
+                <input type="text" name="remarks" value="{{.Remarks}}" class="w-full p-2 border rounded">
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-6">
+            <div class="space-y-4">
+                <div class="flex items-center">
+                    <input type="checkbox" name="has_instructions" id="has_instructions" class="h-4 w-4 text-blue-600 rounded" {{if .HasInstructions}}checked{{end}}>
+                    <label for="has_instructions" class="ml-2 text-sm font-bold text-gray-700">Has Instruction Manuals</label>
+                </div>
+                <div class="flex items-center">
+                    <input type="checkbox" name="part_out" id="part_out" class="h-4 w-4 text-red-600 rounded" {{if .PartOut}}checked{{end}}>
+                    <label for="part_out" class="ml-2 text-sm font-bold text-gray-700">Set is Parted Out</label>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Instruction Book Count</label>
+                <input type="number" name="instruction_book_count" value="{{.InstructionBookCount}}" class="w-full p-2 border rounded">
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">LDraw Module (.ldr, .dat, .mpd)</label>
+            <input type="file" name="ldraw_file" accept=".ldr,.dat,.mpd" class="w-full p-2 border rounded text-sm">
+            {{if .LDrawFile}}
+            <p class="text-[10px] text-gray-400 mt-1">Current file: {{.LDrawFile}}</p>
+            {{end}}
+        </div>
+
+        <div class="flex justify-end space-x-4 mt-8 border-t pt-8">
+            <a href="/sets" class="px-6 py-2 border rounded font-bold text-gray-600 hover:bg-gray-50">Cancel</a>
+            <button type="submit" class="px-6 py-2 bg-red-600 text-white rounded font-black uppercase tracking-widest hover:bg-red-700 shadow-lg">Save All Changes</button>
+        </div>
+    </form>
+
+    <div class="mt-12 p-6 bg-red-50 rounded-lg border border-red-200">
+        <h3 class="text-lg font-bold text-red-800 mb-4">Danger Zone</h3>
+        <p class="text-sm text-red-600 mb-4">Deleting a set is permanent and cannot be undone.</p>
+        <details class="group">
+            <summary class="list-none cursor-pointer bg-red-600 text-white px-4 py-2 rounded font-bold hover:bg-red-700 text-center inline-block">
+                Remove Set From Collection
+            </summary>
+            <div class="mt-4 p-4 bg-white rounded border border-red-100 shadow-inner max-w-md">
+                <h4 class="text-xs font-bold text-red-800 uppercase mb-3">Admin Authorization Required</h4>
+                <form action="/sets/delete" method="POST" onsubmit="return confirm('Permanently delete this set?')">
+                    <input type="hidden" name="id" value="{{.ID}}">
+                    <div class="space-y-3">
+                        <input type="text" name="admin_user" placeholder="Admin Username" class="text-sm p-2 border rounded w-full" required autocomplete="off">
+                        <input type="password" name="admin_pass" placeholder="Admin Password" class="text-sm p-2 border rounded w-full" required autocomplete="off">
+                        <button type="submit" class="w-full bg-red-600 text-white font-bold py-2 rounded shadow">CONFIRM DELETION</button>
+                        {{if .Error}}
+                        <p class="text-red-600 text-xs font-bold mt-2">{{.Error}}</p>
+                        {{end}}
+                    </div>
+                </form>
+            </div>
+        </details>
+    </div>
+</div>
+{{end}}

@@ -1,0 +1,81 @@
+{{template "layout.html" .}}
+{{define "content"}}
+<div class="space-y-8">
+    <div class="bg-white dark:bg-dark-card p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-dark-border">
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-2xl font-black text-blue-800 dark:text-blue-400 uppercase tracking-tight">Inventory Management (Set ID: {{.SetID}})</h2>
+            <a href="/sets/view?id={{.SetID}}" class="text-blue-600 dark:text-blue-400 hover:underline font-bold text-sm">← Back to Details</a>
+        </div>
+        
+        <form action="/sets/sync-parts" method="POST" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 bg-blue-50 dark:bg-blue-900/10 p-6 rounded-2xl border border-blue-100 dark:border-blue-900/30">
+            <input type="hidden" name="set_id" value="{{.SetID}}">
+            <div class="md:col-span-1">
+                <label class="block text-[10px] font-black text-blue-700 dark:text-blue-400 uppercase mb-2">Part Number / Name</label>
+                <select name="part_id" class="w-full p-2 bg-white dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-xl text-sm font-medium" required>
+                    {{range .AllParts}}
+                    <option value="{{.ID}}">{{.PartNum}} - {{.Name}} ({{.Color}})</option>
+                    {{end}}
+                </select>
+            </div>
+            <div>
+                <label class="block text-[10px] font-black text-blue-700 dark:text-blue-400 uppercase mb-2">Quantity in this Set</label>
+                <input type="number" name="quantity" value="1" min="1" class="w-full p-2 bg-white dark:bg-dark-bg border border-gray-200 dark:border-dark-border rounded-xl text-sm font-black" required>
+            </div>
+            <div class="flex items-end">
+                <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded-xl hover:bg-blue-700 font-bold uppercase tracking-widest shadow-lg shadow-blue-500/20 transition">Add to Set</button>
+            </div>
+        </form>
+
+        <h3 class="text-sm font-black text-gray-400 mb-4 uppercase tracking-widest">Parts Linked to this Set</h3>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="border-b dark:border-dark-border bg-gray-50 dark:bg-dark-bg/50 text-[10px] uppercase text-gray-500 dark:text-gray-400 tracking-widest font-black">
+                        <th class="py-4 px-4 rounded-tl-xl">Image</th>
+                        <th class="py-4 px-4">Part Details</th>
+                        <th class="py-4 px-4 text-center">Qty in Set</th>
+                        <th class="py-4 px-4 text-center">Owned Total</th>
+                        <th class="py-4 px-4 text-right rounded-tr-xl">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y dark:divide-dark-border">
+                    {{range .SetParts}}
+                    <tr class="hover:bg-gray-50 dark:hover:bg-dark-bg/50 transition-colors">
+                        <td class="py-4 px-4">
+                            {{if .ImageURL}}
+                            <img src="{{.ImageURL}}" alt="{{.Name}}" class="w-12 h-12 object-contain bg-white dark:bg-dark-bg rounded-lg p-1 border dark:border-dark-border shadow-sm">
+                            {{end}}
+                        </td>
+                        <td class="py-4 px-4">
+                            <div class="text-sm font-black dark:text-white truncate max-w-xs">{{.Name}}</div>
+                            <div class="text-[10px] text-gray-400 font-bold uppercase">{{.PartNum}} &middot; {{.Color}}</div>
+                        </td>
+                        <td class="py-4 px-4 text-center font-black text-blue-600 dark:text-blue-400">
+                            <form action="/sets/sync-parts" method="POST" class="inline-flex items-center">
+                                <input type="hidden" name="set_id" value="{{$.SetID}}">
+                                <input type="hidden" name="part_id" value="{{.ID}}">
+                                <input type="number" name="quantity" value="{{.QuantityInSet}}" min="1" class="w-16 p-1 bg-gray-100 dark:bg-dark-bg border-none rounded-lg text-center text-xs font-black" onchange="this.form.submit()">
+                            </form>
+                        </td>
+                        <td class="py-4 px-4 text-center text-gray-500 dark:text-gray-400 text-xs font-bold">{{.Quantity}}</td>
+                        <td class="py-4 px-4 text-right">
+                            <form action="/sets/sync-parts/remove" method="POST" onsubmit="return confirm('Remove this part from the set?')">
+                                <input type="hidden" name="set_id" value="{{$.SetID}}">
+                                <input type="hidden" name="part_id" value="{{.ID}}">
+                                <button type="submit" class="text-red-400 hover:text-red-600 transition-colors p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20">
+                                    <svg class="w-5 h-5 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {{else}}
+                    <tr>
+                        <td colspan="5" class="py-12 text-center text-gray-400 dark:text-gray-500 italic text-sm">No parts linked to this set yet.</td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{{end}}

@@ -1,0 +1,118 @@
+{{template "layout.html" .}}
+{{define "content"}}
+<div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md">
+    <h1 class="text-2xl font-bold mb-6">Edit Part Metadata</h1>
+    <form action="/parts/update" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="id" value="{{.ID}}">
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="name">
+                Part Name
+            </label>
+            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="name" name="name" type="text" value="{{.Name}}" required>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="part_num">
+                    Part Number
+                </label>
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="part_num" name="part_num" type="text" value="{{.PartNum}}" required>
+            </div>
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="color">
+                    Color
+                </label>
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="color" name="color" type="text" value="{{.Color}}">
+            </div>
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="category">
+                    Category
+                </label>
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="category" name="category" type="text" value="{{.Category}}">
+            </div>
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="quantity">
+                    Quantity
+                </label>
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="quantity" name="quantity" type="number" value="{{.Quantity}}" min="0">
+            </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="price">
+                    Price
+                </label>
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="price" name="price" type="number" step="0.01" value="{{printf "%.2f" .Price}}">
+            </div>
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="cost">
+                    Cost
+                </label>
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="cost" name="cost" type="number" step="0.01" value="{{printf "%.2f" .Cost}}">
+            </div>
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="condition">
+                Condition
+            </label>
+            <select class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="condition" name="condition">
+                <option value="New" {{if eq .Condition "New"}}selected{{end}}>New</option>
+                <option value="Used" {{if eq .Condition "Used"}}selected{{end}}>Used</option>
+                <option value="Incomplete" {{if eq .Condition "Incomplete"}}selected{{end}}>Incomplete</option>
+            </select>
+        </div>
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="image_url">
+                Image URL
+            </label>
+            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="image_url" name="image_url" type="text" value="{{.ImageURL}}">
+        </div>
+        <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="remarks">
+                Remarks
+            </label>
+            <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="remarks" name="remarks" rows="3">{{.Remarks}}</textarea>
+        </div>
+        
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">CAD Model (.ldr, .dat, .mpd)</label>
+            <input type="file" name="cad_file" accept=".ldr,.dat,.mpd" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            {{if .CadFile}}
+            <p class="text-[10px] text-gray-400 mt-1">Current file: {{.CadFile}}</p>
+            {{end}}
+        </div>
+        
+        <div class="flex items-center justify-between border-t pt-6">
+            <div class="flex space-x-4">
+                <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
+                    Save Changes
+                </button>
+                <a href="/parts" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded">Cancel</a>
+            </div>
+        </div>
+    </form>
+
+    <div class="mt-12 p-6 bg-red-50 rounded-lg border border-red-200">
+        <h3 class="text-lg font-bold text-red-800 mb-4">Danger Zone</h3>
+        <p class="text-sm text-red-600 mb-4">Deleting a part is permanent and cannot be undone.</p>
+        <details class="group">
+            <summary class="list-none cursor-pointer bg-red-600 text-white px-4 py-2 rounded font-bold hover:bg-red-700 text-center inline-block">
+                Remove Part From Collection
+            </summary>
+            <div class="mt-4 p-4 bg-white rounded border border-red-100 shadow-inner">
+                <h4 class="text-xs font-bold text-red-800 uppercase mb-3">Admin Authorization Required</h4>
+                <form action="/parts/delete" method="POST" onsubmit="return confirm('Permanently delete this part?')">
+                    <input type="hidden" name="id" value="{{.ID}}">
+                    <div class="space-y-3">
+                        <input type="text" name="admin_user" placeholder="Admin Username" class="text-sm p-2 border rounded w-full" required autocomplete="off">
+                        <input type="password" name="admin_pass" placeholder="Admin Password" class="text-sm p-2 border rounded w-full" required autocomplete="off">
+                        <button type="submit" class="w-full bg-red-600 text-white font-bold py-2 rounded shadow">CONFIRM DELETION</button>
+                        {{if .Error}}
+                        <p class="text-red-600 text-xs font-bold mt-2">{{.Error}}</p>
+                        {{end}}
+                    </div>
+                </form>
+            </div>
+        </details>
+    </div>
+</div>
+{{end}}
